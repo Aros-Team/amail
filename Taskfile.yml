@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+
+tasks:
+  run:
+    desc: Run application
+    cmds:
+      - uvicorn app.main:app --reload --port 8000
+    silent: true
+
+  build:
+    desc: Build application
+    cmds:
+      - task lint
+      - docker build -t amail:latest .
+
+  lint:
+    desc: Run linter
+    cmds:
+      - ruff check . --fix
+
