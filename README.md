@@ -1,114 +1,80 @@
-# Email Service
+# Amail
 
-Internal email service for AROS team. Built with FastAPI and Resend API.
+Internal email service for the AROS team. Built with FastAPI and Resend API.
 
 ## Requirements
 
-- Python 3.12+
-- Docker (for container)
+- Python 3.11
+- Docker (to build the image)
+- Virtualenv
+- Taskfile
 
-## Installation
+## First Steps
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+Before running commands, initialize the virtual environment with virtualenv:
 
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your RESEND_API_KEY
+```
+virtualenv -p 3.11 venv
+
+# Load environment
+source venv/bin/activate
 ```
 
-## Local Development
+Then install dependencies: `pip install -r requirements.txt`
 
-```bash
-# Run development server
-uvicorn app.main:app --reload --port 8000
-```
+## Commands
 
-## Docker Usage
+- To run the project, use `task run`. For API documentation, see [http://localhost:8000/docs](http://localhost:8000/docs).
+- To build the project, use `task build`. This command adds a new image to local Docker images.
+- To lint the code, use `task lint`.
 
-```bash
-# Build image
-docker build -t email-service .
+## Authentication
 
-# Run container
-docker run -p 8000:8000 --env-file .env email-service
-```
+All API endpoints (except `/health` and `/api/token`) require JWT authentication.
 
-## Configuration
+1. Get a token:
+   ```bash
+   curl -X GET http://localhost:8000/api/token
+   ```
 
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| RESEND_API_KEY | Resend API key | Yes |
-| DOMINIO | Email domain (e.g., aros.services) | No (default: aros.services) |
-| FORWARD_TO_EMAIL | Destination email for webhook forwarding | No |
-
-### Email Domain
-
-The base domain is configured with `DOMINIO` (default: `aros.services`). Webhook emails can be received from:
-- support@{DOMINIO}
-- noreply@{DOMINIO}
-- team@{DOMINIO}
-
-## API Endpoints
-
-### Health Check
-```
-GET /health
-```
-
-### List Templates
-```
-GET /api/templates
-```
-
-### Send Email
-```
-POST /api/send
-```
-
-**Body:**
-```json
-{
-  "to": "recipient@example.com",
-  "template": "welcome",
-  "subject": "Welcome",
-  "data": {
-    "name": "John",
-    "message": "Thanks for signing up"
-  }
-}
-```
-
-### Resend Webhook
-```
-POST /api/webhook
-```
+2. Use the token in requests:
+   ```bash
+   curl -X POST http://localhost:8000/api/send \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "to": "recipient@example.com",
+       "template": "welcome",
+       "subject": "Welcome",
+       "data": {"name": "John"}
+     }'
+   ```
 
 ## Project Structure
 
 ```
-email-service/
+amail/
 ├── app/
 │   ├── main.py              # FastAPI app
 │   ├── config.py            # Configuration
+│   ├── security.py          # JWT authentication
+│   ├── contracts/           # Provider interfaces
+│   │   ├── sender.py        # EmailSender protocol
+│   │   └── receiver.py      # EmailReceiver protocol
+│   ├── providers/           # Provider implementations
+│   │   └── resend/          # Resend implementation
+│   │       ├── sender.py
+│   │       └── receiver.py
 │   ├── routes/
-│   │   ├── email.py         # Email endpoints
-│   │   └── webhook.py       # Webhook endpoint
+│   │   └── messages.py      # API endpoints
 │   ├── services/
-│   │   ├── resend_client.py # Resend client
 │   │   └── templates.py     # Template management
 │   └── models/
 │       └── schemas.py       # Pydantic models
 ├── templates/                # HTML templates
+├── tests/                    # Test suite
 ├── requirements.txt
+├── Taskfile.yml
 ├── Dockerfile
-├── .env.example
 └── AGENTS.md                # Developer guidelines
 ```
-
-## License
-
-MIT
