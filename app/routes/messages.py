@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.contracts.sender import EmailSender
 from app.contracts.receiver import EmailReceiver
@@ -7,9 +7,9 @@ from app.models.schemas import (
     EmailResponse,
     TemplatesResponse,
     TemplateInfo,
+    WebhookPayload,
 )
 from app.providers import get_sender, get_receiver
-from app.security import get_current_user
 from app.services.templates import get_templates, render_template
 
 router = APIRouter(prefix="/api", tags=["messages"])
@@ -26,7 +26,6 @@ def list_templates():
 @router.post("/send", response_model=EmailResponse)
 def send_email(
     request: EmailRequest,
-    user: dict = Depends(get_current_user),
     sender: EmailSender = Depends(get_sender),
 ):
     templates = get_templates()
@@ -49,14 +48,11 @@ def send_email(
 
 @router.post("/receive")
 async def receive_email(
-    request: Request,
-    user: dict = Depends(get_current_user),
+    payload: WebhookPayload,
     receiver: EmailReceiver = Depends(get_receiver),
 ):
-    payload = await request.json()
-
     try:
-        result = receiver.receive(payload)
+        result = receiver.receive(payload.model_dump())
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

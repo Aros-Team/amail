@@ -46,7 +46,6 @@ pytest --cov=app         # With coverage
 app/
 ├── main.py              # FastAPI app
 ├── config.py            # Configuration
-├── security.py          # JWT authentication
 ├── contracts/           # Provider interfaces
 │   ├── sender.py       # EmailSender protocol
 │   └── receiver.py     # EmailReceiver protocol
@@ -68,28 +67,6 @@ Taskfile.yml
 Dockerfile
 .env.example
 AGENTS.md               # Developer guidelines
-```
-
-## Security (JWT Authentication)
-
-All API endpoints (except `/health` and `/api/token`) require JWT authentication.
-
-### Get Token
-```bash
-curl -X GET http://localhost:8000/api/token
-```
-
-### Use Token in Requests
-```bash
-curl -X POST http://localhost:8000/api/send \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "to": "recipient@example.com",
-    "template": "welcome",
-    "subject": "Welcome",
-    "data": {"name": "John"}
-  }'
 ```
 
 ## Provider Abstraction
@@ -163,17 +140,11 @@ def mock_resend():
 | RESEND_API_KEY | Resend API key | Yes |
 | DOMAIN | Email domain (default: aros.services) | No |
 | FORWARD_TO_EMAIL | Forward webhook emails here | No |
-| JWT_SECRET_KEY | Secret key for JWT (change in production!) | No |
-| JWT_ALGORITHM | JWT algorithm (default: HS256) | No |
-| JWT_EXPIRATION_MINUTES | Token expiration (default: 60) | No |
 
 ## API Endpoints
 
 ### GET /health
 Health check endpoint.
-
-### GET /api/token
-Get JWT access token (no auth required).
 
 ### GET /api/templates
 List available email templates.

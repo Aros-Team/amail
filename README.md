@@ -13,7 +13,7 @@ Internal email service for the AROS team. Built with FastAPI and Resend API.
 
 Before running commands, initialize the virtual environment with virtualenv:
 
-```
+```code
 virtualenv -p 3.11 venv
 
 # Load environment
@@ -28,36 +28,26 @@ Then install dependencies: `pip install -r requirements.txt`
 - To build the project, use `task build`. This command adds a new image to local Docker images.
 - To lint the code, use `task lint`.
 
-## Authentication
+## Usage
 
-All API endpoints (except `/health` and `/api/token`) require JWT authentication.
-
-1. Get a token:
-   ```bash
-   curl -X GET http://localhost:8000/api/token
-   ```
-
-2. Use the token in requests:
-   ```bash
-   curl -X POST http://localhost:8000/api/send \
-     -H "Authorization: Bearer YOUR_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "to": "recipient@example.com",
-       "template": "welcome",
-       "subject": "Welcome",
-       "data": {"name": "John"}
-     }'
-   ```
+```code
+curl -X POST http://localhost:8000/api/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "recipient@example.com",
+    "template": "welcome",
+    "subject": "Welcome",
+    "data": {"name": "John"}
+  }'
+```
 
 ## Project Structure
 
-```
+```code
 amail/
 ├── app/
 │   ├── main.py              # FastAPI app
 │   ├── config.py            # Configuration
-│   ├── security.py          # JWT authentication
 │   ├── contracts/           # Provider interfaces
 │   │   ├── sender.py        # EmailSender protocol
 │   │   └── receiver.py      # EmailReceiver protocol
