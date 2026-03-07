@@ -140,6 +140,7 @@ def mock_resend():
 | RESEND_API_KEY | Resend API key | Yes |
 | DOMAIN | Email domain (default: aros.services) | No |
 | FORWARD_TO_EMAIL | Forward webhook emails here | No |
+| WEBHOOK_EMAILS | List of allowed receiving emails (default: support,noreply,team) | No |
 
 ## API Endpoints
 
@@ -147,13 +148,41 @@ def mock_resend():
 Health check endpoint.
 
 ### GET /api/templates
-List available email templates.
+List available email templates with their variables.
 
 ### POST /api/send
 Send an email using a template.
 
+**Example:**
+```json
+{
+  "to": "user@example.com",
+  "subject": "Welcome",
+  "template": "welcome",
+  "data": {"name": "John", "message": "Thanks for signing up!"}
+}
+```
+
 ### POST /api/receive
-Receive incoming emails (webhook endpoint).
+**This endpoint is designed to be called by Resend webhooks, not directly.**
+
+To receive emails:
+
+1. **Configure webhook in Resend Dashboard**:
+   - Go to [Resend Webhooks](https://resend.com/webhooks)
+   - Create a new webhook with URL: `https://your-domain.com/api/receive`
+   - Select event type: `email.received`
+
+2. **How it works**:
+   - Resend sends a POST request when an email is received
+   - The endpoint validates that the email was sent to an allowed address
+   - It fetches the email content using Resend's Receiving API
+   - Forwards the email to `FORWARD_TO_EMAIL`
+
+3. **Allowed addresses** (configurable via `WEBHOOK_EMAILS`):
+   - `support@your-domain.com`
+   - `noreply@your-domain.com`
+   - `team@your-domain.com`
 
 ## Common Tasks
 
