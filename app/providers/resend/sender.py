@@ -18,7 +18,7 @@ class ResendSender:
             "html": html,
         }
 
-        response = resend.emails.send(params)
+        response = resend.Emails.send(params)
         return response.get("id", "")
 
 
