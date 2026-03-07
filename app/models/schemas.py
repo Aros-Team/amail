@@ -15,9 +15,17 @@ class EmailResponse(BaseModel):
     email_id: str | None = None
 
 
+class TemplateVariable(BaseModel):
+    name: str
+    type: str
+    description: str
+    required: bool
+
+
 class TemplateInfo(BaseModel):
     name: str
     description: str
+    variables: list[TemplateVariable]
 
 
 class TemplatesResponse(BaseModel):

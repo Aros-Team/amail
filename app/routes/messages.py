@@ -19,7 +19,10 @@ router = APIRouter(prefix="/api", tags=["messages"])
 def list_templates():
     templates = get_templates()
     return TemplatesResponse(
-        templates=[TemplateInfo(name=name, description=desc) for name, desc in templates.items()]
+        templates=[
+            TemplateInfo(name=name, description=info["description"], variables=info["variables"])
+            for name, info in templates.items()
+        ]
     )
 
 
