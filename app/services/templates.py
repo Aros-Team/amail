@@ -44,6 +44,15 @@ AVAILABLE_TEMPLATES = {
             TemplateVariable("expiry", "string", "Minutos hasta expiración (opcional)", False),
         ],
     },
+    "password_reset": {
+        "description": "Restablecimiento de contraseña",
+        "variables": [
+            TemplateVariable("expiry", "string", "Tiempo hasta expiración", True),
+            TemplateVariable("message", "string", "Mensaje principal", True),
+            TemplateVariable("reset_link", "string", "Link para restablecer contraseña", False),
+            TemplateVariable("notification", "object", "Notificación adicional (opcional)", False),
+        ],
+    },
 }
 
 

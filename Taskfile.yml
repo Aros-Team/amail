@@ -20,20 +20,3 @@ tasks:
     desc: Run linter
     cmds:
       - ruff check . --fix
-
-  compose:up:
-    desc: Start monitoring services (Prometheus, Grafana)
-    cmds:
-      - docker compose up -d
-    status:
-      - docker compose ps
-
-  compose:down:
-    desc: Stop monitoring services
-    cmds:
-      - docker compose down
-
-  compose:logs:
-    desc: View monitoring services logs
-    cmds:
-      - docker compose logs -f

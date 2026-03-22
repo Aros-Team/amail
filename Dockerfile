@@ -7,8 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
 COPY templates/ ./templates/
-COPY prometheus/ ./prometheus/
-COPY alerts/ ./alerts/
 
 EXPOSE 8000
 
