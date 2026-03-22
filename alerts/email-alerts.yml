@@ -1,0 +1,74 @@
+groups:
+  - name: amail_email_alerts
+    interval: 30s
+    rules:
+      - alert: HighEmailErrorRate
+        expr: |
+          sum(rate(email_send_total{status="failure"}[5m])) 
+          / 
+          sum(rate(email_send_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High email error rate detected"
+          description: "Email error rate is {{ $value | humanizePercentage }} (threshold: 5%) over the last 5 minutes"
+          runbook_url: "https://docs.example.com/runbooks/high-email-error-rate"
+
+      - alert: HighEmailLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum(rate(email_send_duration_seconds_bucket[5m])) by (le)) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High email send latency (p95)"
+          description: "Email send p95 latency is {{ $value | humanizeDuration }} (threshold: 3s) over the last 5 minutes"
+
+      - alert: ResendRateLimitLow
+        expr: resend_rate_limit_remaining < 100
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Resend rate limit running low"
+          description: "Resend API rate limit remaining: {{ $value }} requests"
+
+      - alert: EmailHealthCheckFailing
+        expr: |
+          sum(increase(email_health_check_total{status="unhealthy"}[5m])) 
+          > 
+          sum(increase(email_health_check_total{status="healthy"}[5m]))
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Email health check is failing"
+          description: "Email service health check has been unhealthy for more than 2 minutes"
+
+      - alert: HighRetryRate
+        expr: |
+          sum(rate(email_retry_total[5m])) 
+          / 
+          sum(rate(email_send_total[5m])) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High email retry rate"
+          description: "More than 20% of email sends are requiring retries"
+
+      - alert: EmailServiceDown
+        expr: up{job="amail"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Email service is down"
+          description: "Amail service has been down for more than 1 minute"

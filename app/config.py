@@ -15,6 +15,9 @@ class Settings:
     DOMAIN: str = getenv("DOMAIN", "aros.services")
     FORWARD_TO_EMAIL: str = getenv("FORWARD_TO_EMAIL", "jorgity345@gmail.com")
     WEBHOOK_EMAILS: list = ["support", "noreply", "team"]
+    ENVIRONMENT: str = getenv("ENVIRONMENT", "development")
+    VERSION: str = getenv("VERSION", "1.0.0")
+    LOG_LEVEL: str = getenv("LOG_LEVEL", "INFO")
 
     @property
     def webhook_allowed_emails(self) -> list[str]:

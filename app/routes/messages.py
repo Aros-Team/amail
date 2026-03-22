@@ -38,12 +38,13 @@ def send_email(
 
     try:
         html_content = render_template(request.template, request.data)
-        email_id = sender.send(request.to, request.subject, html_content)
+        result = sender.send_with_retry(request.to, request.subject, html_content)
 
         return EmailResponse(
             success=True,
             message="Email sent successfully",
-            email_id=email_id,
+            email_id=result.get("id", ""),
+            request_id=result.get("request_id", ""),
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

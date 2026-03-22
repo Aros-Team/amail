@@ -13,6 +13,7 @@ class EmailResponse(BaseModel):
     success: bool
     message: str
     email_id: str | None = None
+    request_id: str | None = None
 
 
 class TemplateVariable(BaseModel):

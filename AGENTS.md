@@ -46,22 +46,29 @@ pytest --cov=app         # With coverage
 app/
 ├── main.py              # FastAPI app
 ├── config.py            # Configuration
+├── logging_config.py    # Structured logging setup (structlog)
+├── metrics.py           # Prometheus metrics definitions
 ├── contracts/           # Provider interfaces
 │   ├── sender.py       # EmailSender protocol
 │   └── receiver.py     # EmailReceiver protocol
 ├── providers/          # Provider implementations
 │   ├── __init__.py    # Factory functions
 │   └── resend/        # Resend implementation
-│       ├── sender.py
+│       ├── sender.py   # With logging & retry logic
 │       └── receiver.py
 ├── routes/
-│   └── messages.py     # API endpoints (/api/send, /api/receive)
+│   ├── messages.py     # API endpoints (/api/send, /api/receive)
+│   └── health.py      # Health check endpoints
 ├── services/
-│   └── templates.py     # Template management
+│   └── templates.py   # Template management
 └── models/
-    └── schemas.py       # Pydantic models
-templates/               # HTML templates
-tests/                   # Test suite
+    └── schemas.py     # Pydantic models
+templates/              # HTML templates
+prometheus/             # Prometheus configuration
+grafana/                # Grafana dashboards
+alerts/                 # Alert definitions
+docs/                   # Documentation
+tests/                  # Test suite
 requirements.txt
 Taskfile.yml
 Dockerfile
@@ -141,11 +148,24 @@ def mock_resend():
 | DOMAIN | Email domain (default: aros.services) | No |
 | FORWARD_TO_EMAIL | Forward webhook emails here | No |
 | WEBHOOK_EMAILS | List of allowed receiving emails (default: support,noreply,team) | No |
+| ENVIRONMENT | Environment (dev/staging/prod) | No |
+| VERSION | Service version | No |
+| LOG_LEVEL | Logging level (default: INFO) | No |
 
 ## API Endpoints
 
 ### GET /health
 Health check endpoint.
+
+### GET /metrics
+Prometheus metrics endpoint. Returns metrics in Prometheus format.
+
+### GET /health/email
+Email service health check. Sends a test email to `test@resend.dev` and returns:
+- `status`: healthy/unhealthy
+- `latency_ms`: Response time
+- `status_code`: HTTP status code from Resend
+- `resend_id`: ID of sent test email
 
 ### GET /api/templates
 List available email templates with their variables.
