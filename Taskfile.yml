@@ -7,16 +7,16 @@ tasks:
   run:
     desc: Run application
     cmds:
-      - uvicorn app.main:app --reload --port 8000
+      - uv run fastapi dev
     silent: true
 
   build:
     desc: Build application
     cmds:
       - task lint
-      - docker build -t amail:latest .
+      - docker build -t spalaxdev/amail:1.3 .
 
   lint:
     desc: Run linter
     cmds:
-      - ruff check . --fix
+      - uv run ruff check . --fix

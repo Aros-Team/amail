@@ -28,7 +28,16 @@ AVAILABLE_TEMPLATES = {
         "description": "Correo de bienvenida",
         "variables": [
             TemplateVariable("name", "string", "Nombre del usuario (opcional)", False),
-            TemplateVariable("message", "string", "Mensaje de bienvenida", True),
+            TemplateVariable("welcome_link", "string", "Link para activar cuenta", False),
+            TemplateVariable("expiry", "string", "Tiempo hasta expiración (opcional)", False),
+        ],
+    },
+    "welcome_employee": {
+        "description": "Invitación para empleado nuevo",
+        "variables": [
+            TemplateVariable("name", "string", "Nombre del empleado (opcional)", False),
+            TemplateVariable("welcome_link", "string", "Link para activar cuenta", False),
+            TemplateVariable("expiry", "string", "Tiempo hasta expiración (opcional)", False),
         ],
     },
     "notification": {

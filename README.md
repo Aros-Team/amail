@@ -40,31 +40,3 @@ curl -X POST http://localhost:8000/api/send \
     "data": {"name": "John"}
   }'
 ```
-
-## Project Structure
-
-```code
-amail/
-├── app/
-│   ├── main.py              # FastAPI app
-│   ├── config.py            # Configuration
-│   ├── contracts/           # Provider interfaces
-│   │   ├── sender.py        # EmailSender protocol
-│   │   └── receiver.py      # EmailReceiver protocol
-│   ├── providers/           # Provider implementations
-│   │   └── resend/          # Resend implementation
-│   │       ├── sender.py
-│   │       └── receiver.py
-│   ├── routes/
-│   │   └── messages.py      # API endpoints
-│   ├── services/
-│   │   └── templates.py     # Template management
-│   └── models/
-│       └── schemas.py       # Pydantic models
-├── templates/                # HTML templates
-├── tests/                    # Test suite
-├── requirements.txt
-├── Taskfile.yml
-├── Dockerfile
-└── AGENTS.md                # Developer guidelines
-```

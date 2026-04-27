@@ -1,0 +1,9 @@
+.git/
+.venv/
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+.python-version
+.env
+.env.example
+*.pyc

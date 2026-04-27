@@ -5,17 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenido</title>
 </head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://landing.aros.services/aros.ico" alt="AROS" width="80">
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color:#f7f8f9">
+    <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 30px; padding: 0.5rem">
+
+        <h1 style="color: #B5DEDB; margin-left:1rem; font-size:1.5rem">¡Bienvenido{{ ' ' + name if name }}!</h1>
+        <img style="margin-top:0.30rem" src="https://storage.googleapis.com/aros-static/aros.ico" alt="AROS" width="60">
     </div>
-    <h1 style="color: #B1DEDB;">¡Bienvenido{{ ' ' + name if name }}!</h1>
-    <p style="color: #666; font-size: 16px;">{{ message }}</p>
-    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 20px;">
-        <p style="margin: 0; color: #888; font-size: 14px;">Equipo de AROS</p>
+    <p style="color: #333; font-size: 16px;">
+    Has dado el primer paso hacia un mundo más organizado. <b>RMS</b> 
+        es la herramienta que necesitas para simplificar tu operación y enfocarte en lo que 
+        realmente importa: <b>tomar el control de tu negocio</b>.
+    </p>
+    <p style="color: #333; font-size: 16px;">
+        Haz clic en el siguiente enlace para activar tu cuenta:
+    </p>
+    <br>
+    {% if welcome_link %}
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="{{ welcome_link }}" style="display: inline-block; background-color: #B1DEDB; color: #333; padding: 15px 30px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 16px;">Activar mi cuenta</a>
+    
+    <p style="color: #333; font-size: 10px;">Este enlace expira en <strong>{{ expiry if expiry else '30 minutos' }}</strong>*</p>
     </div>
-    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee;">
-        <p style="margin: 0; color: #888; font-size: 14px; text-align: center;">¿Necesitas ayuda? Contáctanos en <a href="mailto:support@aros.services" style="color: #B1DEDB;">support@aros.services</a></p>
+    {% endif %}
+
+    <br>
+    <p style="color: #333; font-size: 16px;">
+        Una vez activado, podrás configurar tu contraseña y empezar a usar el sistema. 
+        Gracias por confiar en nosotros.
+    </p>
+    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #a3a1a1">
+        <p style="margin: 0; color: #333; font-size: 14px; text-align: center;">¿Necesitas ayuda? Contáctanos en <a href="mailto:support@aros.services" style="color: #B1DEDB;">support@aros.services</a></p>
     </div>
 </body>
 </html>

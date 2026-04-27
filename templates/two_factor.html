@@ -5,21 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Código de verificación</title>
 </head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://landing.aros.services/aros.ico" alt="AROS" width="80">
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f7f8f9">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background-color: #B5DEDB; padding: 0.5rem">
+        <h1 style="color: #333; margin-left: 1rem; font-size: 1.5rem">Código de verificación</h1>
+        <img style="margin-top: 0.30rem" src="https://storage.googleapis.com/aros-static/aros.ico" alt="AROS" width="60">
     </div>
-    <h1 style="color: #B1DEDB; text-align: center;">Código de verificación</h1>
-    <p style="color: #666; font-size: 16px; text-align: center;">Usa el siguiente código para completar tu verificación:</p>
-    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0;">
-        <span style="font-size: 36px; font-weight: bold; color: #B1DEDB; letter-spacing: 8px;">{{ code }}</span>
+    <p style="color: #333; font-size: 16px; text-align: center;">Usa el siguiente código para completar tu verificación:</p>
+    <br>
+    <div style="background-color: #B5DEDB; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0;">
+        <span style="font-size: 36px; font-weight: bold; color: #333; letter-spacing: 8px;">{{ code }}</span>
     </div>
     {% if expiry %}
-    <p style="color: #888; font-size: 14px; text-align: center;">Este código expira en {{ expiry }} minutos</p>
+    <p style="color: #333; font-size: 14px; text-align: center;">Este código expira en <strong>{{ expiry }}</strong> minutos</p>
     {% endif %}
-    <p style="color: #888; font-size: 14px; text-align: center;">Si no solicitaste este código, puedes ignorarlo con seguridad.</p>
-    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
-        <p style="margin: 0; color: #888; font-size: 14px; text-align: center;">¿Necesitas ayuda? Contáctanos en <a href="mailto:support@aros.services" style="color: #B1DEDB;">support@aros.services</a></p>
+    <br>
+    <p style="color: #333; font-size: 14px; text-align: center;">Si no solicitaste este código, puedes ignorarlo con seguridad.</p>
+    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #a3a1a1">
+        <p style="margin: 0; color: #333; font-size: 14px; text-align: center;">¿Necesitas ayuda? Contáctanos en <a href="mailto:support@aros.services" style="color: #B1DEDB;">support@aros.services</a></p>
     </div>
 </body>
 </html>

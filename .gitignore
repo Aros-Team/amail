@@ -4,3 +4,4 @@
 .pytest_cache
 **/venv
 deploy.sh
+informe.md
