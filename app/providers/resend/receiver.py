@@ -6,6 +6,8 @@ import time
 
 log = get_logger(__name__)
 
+SET_FORWARD_PREFIX = "SET_FORWARD:"
+
 
 class ResendReceiver:
     def __init__(self) -> None:
@@ -24,6 +26,13 @@ class ResendReceiver:
         to_emails = email_data.get("to", [])
         email_id = email_data.get("email_id", "")
 
+        if subject.startswith(SET_FORWARD_PREFIX):
+            new_email = subject[len(SET_FORWARD_PREFIX):].strip()
+            if new_email:
+                self.settings.set_forward_to_email(new_email)
+                log.info("forward_email_command_executed", new_email=new_email, email_id=email_id)
+                return {"status": "forward_target_updated", "new_email": new_email}
+
         allowed_emails = self.settings.webhook_allowed_emails
 
         if not any(email in allowed_emails for email in to_emails):
@@ -37,7 +46,7 @@ class ResendReceiver:
             html = f"<p>Forwarded email from: {from_email}</p><p>Subject: {subject}</p>"
 
         self.sender.send(
-            to=self.settings.FORWARD_TO_EMAIL,
+            to=self.settings.forward_to_email,
             subject=f"FWD: {subject} (from: {from_email})",
             html=html,
         )

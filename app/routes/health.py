@@ -79,3 +79,17 @@ def email_health_check() -> dict[str, Any]:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
+
+
+@router.get("/health/webhook")
+def webhook_health_check() -> dict[str, Any]:
+    settings = get_settings()
+    webhook_configured = bool(settings.RESEND_WEBHOOK_SECRET)
+
+    log.info("webhook_health_check", webhook_configured=webhook_configured)
+
+    return {
+        "status": "configured" if webhook_configured else "missing_secret",
+        "webhook_secret_configured": webhook_configured,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }

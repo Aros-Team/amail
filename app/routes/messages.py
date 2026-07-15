@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+import json
+import resend
 
+from app.config import get_settings
 from app.contracts.sender import EmailSender
 from app.contracts.receiver import EmailReceiver
 from app.models.schemas import (
@@ -51,12 +54,38 @@ def send_email(
 
 
 @router.post("/receive")
-async def receive_email(
-    payload: WebhookPayload,
-    receiver: EmailReceiver = Depends(get_receiver),
-):
+async def receive_email(request: Request, receiver: EmailReceiver = Depends(get_receiver)):
+    settings = get_settings()
+
+    svix_id = request.headers.get("svix-id")
+    svix_timestamp = request.headers.get("svix-timestamp")
+    svix_signature = request.headers.get("svix-signature")
+
+    if not all([svix_id, svix_timestamp, svix_signature]):
+        raise HTTPException(status_code=400, detail="Missing Svix webhook headers")
+
+    raw_body = await request.body()
+
     try:
-        result = receiver.receive(payload.model_dump())
+        verified = resend.webhooks.verify(
+            payload=raw_body,
+            headers={
+                "id": svix_id,
+                "timestamp": svix_timestamp,
+                "signature": svix_signature,
+            },
+            secret=settings.RESEND_WEBHOOK_SECRET,
+        )
+    except Exception:
+        raise HTTPException(status_code=400, detail="Webhook signature verification failed")
+
+    try:
+        payload_dict = json.loads(verified) if isinstance(verified, str) else verified
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid webhook payload")
+
+    try:
+        result = receiver.receive(payload_dict)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
