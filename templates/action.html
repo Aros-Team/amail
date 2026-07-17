@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "components/button.html" import cta_button %}
+{% from "components/notice.html" import notice_box %}
+
+{% block content %}
+<p style="color:#333;font-size:16px;line-height:1.5">{{ message }}</p>
+
+{% if cta_text and cta_url %}
+  {{ cta_button(cta_text, cta_url, brand_color | default('#1a73e8')) }}
+  {% if expiry %}
+  <p style="color:#888;font-size:11px;text-align:center">
+    {% if lang == "en" %}This link expires in{% else %}Este enlace expira en{% endif %}
+    <strong>{{ expiry }}</strong>
+  </p>
+  {% endif %}
+{% endif %}
+
+{% if notification %}
+  {{ notice_box(notification.message if notification is mapping else notification) }}
+{% endif %}
+{% endblock %}

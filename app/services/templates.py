@@ -1,75 +1,71 @@
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Any
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+from app.models.schemas import TemplateVariable
 
 TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates"
 
 env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),
-    autoescape=select_autoescape(["html", "xml"])
+    autoescape=select_autoescape(["html", "xml"]),
 )
 
-
-def render_template(template_name: str, data: dict[str, Any]) -> str:
-    template = env.get_template(f"{template_name}.html")
-    return template.render(**data)
-
-
-class TemplateVariable:
-    def __init__(self, name: str, type: str, description: str, required: bool = True):
-        self.name = name
-        self.type = type
-        self.description = description
-        self.required = required
-
-
-AVAILABLE_TEMPLATES = {
-    "welcome": {
-        "description": "Correo de bienvenida",
+TEMPLATE_METADATA: dict[str, dict[str, Any]] = {
+    "action": {
+        "description": "Call-to-action email (welcome, password reset, invitation)",
         "variables": [
-            TemplateVariable("name", "string", "Nombre del usuario (opcional)", False),
-            TemplateVariable("welcome_link", "string", "Link para activar cuenta", False),
-            TemplateVariable("expiry", "string", "Tiempo hasta expiración (opcional)", False),
-        ],
-    },
-    "welcome_employee": {
-        "description": "Invitación para empleado nuevo",
-        "variables": [
-            TemplateVariable("name", "string", "Nombre del empleado (opcional)", False),
-            TemplateVariable("welcome_link", "string", "Link para activar cuenta", False),
-            TemplateVariable("expiry", "string", "Tiempo hasta expiración (opcional)", False),
+            TemplateVariable(name="message", type="string", description="Main message body", required=True),
+            TemplateVariable(name="cta_text", type="string", description="Button label", required=False),
+            TemplateVariable(name="cta_url", type="string", description="Button URL", required=False),
+            TemplateVariable(name="expiry", type="string", description="Expiration time", required=False),
+            TemplateVariable(name="notification", type="object", description="Additional notice", required=False),
         ],
     },
     "notification": {
-        "description": "Notificación general",
+        "description": "General notification or alert",
         "variables": [
-            TemplateVariable("message", "string", "Contenido de la notificación", True),
+            TemplateVariable(name="heading", type="string", description="Notification heading", required=False),
+            TemplateVariable(name="message", type="string", description="Content body", required=True),
+            TemplateVariable(name="details", type="object", description="Key-value detail list", required=False),
         ],
     },
-    "two_factor": {
-        "description": "Código de verificación de dos factores",
+    "verification": {
+        "description": "Verification or one-time code",
         "variables": [
-            TemplateVariable("code", "string", "Código de 6 dígitos", True),
-            TemplateVariable("expiry", "string", "Minutos hasta expiración (opcional)", False),
+            TemplateVariable(name="code", type="string", description="Verification code", required=True),
+            TemplateVariable(name="expiry", type="string", description="Expiration time", required=False),
         ],
     },
-    "password_reset": {
-        "description": "Restablecimiento de contraseña",
+    "custom": {
+        "description": "Custom raw HTML content wrapped in base layout",
         "variables": [
-            TemplateVariable("expiry", "string", "Tiempo hasta expiración", True),
-            TemplateVariable("message", "string", "Mensaje principal", True),
-            TemplateVariable("reset_link", "string", "Link para restablecer contraseña", False),
-            TemplateVariable("notification", "object", "Notificación adicional (opcional)", False),
+            TemplateVariable(name="content", type="string", description="Raw HTML body content", required=True),
         ],
     },
 }
 
 
-def get_templates() -> dict[str, dict]:
+def build_base_context(data: dict[str, Any]) -> dict[str, Any]:
     return {
-        name: {"description": info["description"], "variables": [
-            {"name": v.name, "type": v.type, "description": v.description, "required": v.required}
-            for v in info["variables"]
-        ]}
-        for name, info in AVAILABLE_TEMPLATES.items()
+        "brand_name": data.pop("brand_name", ""),
+        "brand_color": data.pop("brand_color", "#1a73e8"),
+        "logo_url": data.pop("logo_url", None),
+        "support_email": data.pop("support_email", "support@example.com"),
+        "lang": data.pop("lang", "es"),
+        **data,
+    }
+
+
+def render_template(template_name: str, data: dict[str, Any]) -> str:
+    template = env.get_template(f"{template_name}.html")
+    context = build_base_context(data.copy())
+    return template.render(**context)
+
+
+def get_templates() -> dict[str, dict[str, Any]]:
+    return {
+        name: {"description": info["description"], "variables": info["variables"]}
+        for name, info in TEMPLATE_METADATA.items()
     }

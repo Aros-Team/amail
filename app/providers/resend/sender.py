@@ -3,35 +3,18 @@ import uuid
 from typing import Any
 
 import resend
-from tenacity import retry
-from tenacity import retry_if_exception_type, stop_after_attempt, wait_exponential
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from app.config import get_settings
 from app.logging_config import get_logger
+from app.providers.resend.errors import (
+    ResendAPIError,
+    ResendConnectionError,
+    ResendRateLimitError,
+    ResendServerError,
+)
 
 log = get_logger(__name__)
-
-
-class ResendAPIError(Exception):
-    def __init__(self, message: str, status_code: int | None = None, error_type: str = "unknown"):
-        self.message = message
-        self.status_code = status_code
-        self.error_type = error_type
-        super().__init__(message)
-
-
-class ResendRateLimitError(ResendAPIError):
-    def __init__(self, message: str, status_code: int | None = None, reset_at: int | None = None):
-        super().__init__(message, status_code, "rate_limit")
-        self.reset_at = reset_at
-
-
-class ResendServerError(ResendAPIError):
-    pass
-
-
-class ResendConnectionError(ResendAPIError):
-    pass
 
 
 class ResendSender:
@@ -40,11 +23,19 @@ class ResendSender:
 
     def __init__(self) -> None:
         settings = get_settings()
-        resend.api_key = settings.RESEND_API_KEY
+        resend.api_key = settings.resend_api_key
         self.settings = settings
 
-    def send(self, to: str, subject: str, html: str, request_id: str | None = None) -> dict[str, Any]:
-        from_email = f"noreply@{self.settings.DOMAIN}"
+    def send(
+        self,
+        to: list[str],
+        subject: str,
+        html: str,
+        options: dict[str, Any] | None = None,
+        request_id: str | None = None,
+    ) -> dict[str, Any]:
+        options = options or {}
+        from_email = options.get("from_email") or f"noreply@{self.settings.domain}"
         req_id = request_id or str(uuid.uuid4())
 
         log.info(
@@ -59,10 +50,16 @@ class ResendSender:
         try:
             params: dict[str, Any] = {
                 "from": from_email,
-                "to": [to],
+                "to": to,
                 "subject": subject,
                 "html": html,
             }
+            if options.get("cc"):
+                params["cc"] = options["cc"]
+            if options.get("bcc"):
+                params["bcc"] = options["bcc"]
+            if options.get("reply_to"):
+                params["reply_to"] = options["reply_to"]
 
             response = resend.Emails.send(params)
             duration_ms = (time.perf_counter() - start_time) * 1000
@@ -97,17 +94,16 @@ class ResendSender:
             error_kwargs = {
                 "message": error_info["message"],
                 "status_code": error_info.get("status_code"),
-                "error_type": error_type,
             }
-            
+
             if error_type == "rate_limit":
-                raise ResendRateLimitError(**error_kwargs)
+                raise ResendRateLimitError(**error_kwargs, reset_at=error_info.get("reset_at"))
             elif error_type == "server_error":
                 raise ResendServerError(**error_kwargs)
             elif error_type == "connection_error":
                 raise ResendConnectionError(**error_kwargs)
             else:
-                raise ResendAPIError(**error_kwargs)
+                raise ResendAPIError(**error_kwargs, error_type=error_type)
 
     def _parse_error(self, e: Exception) -> dict[str, Any]:
         error_msg = str(e)
@@ -142,12 +138,7 @@ class ResendSender:
         reset_at = getattr(e, "reset_at", None)
 
         if status_code == 429:
-            return {
-                "message": error_msg,
-                "status_code": status_code,
-                "error_type": "rate_limit",
-                "reset_at": reset_at,
-            }
+            return {"message": error_msg, "status_code": status_code, "error_type": "rate_limit", "reset_at": reset_at}
 
         if status_code in self.NON_RETRYABLE_ERRORS:
             if status_code == 401:
@@ -169,9 +160,10 @@ class ResendSender:
 
     def send_with_retry(
         self,
-        to: str,
+        to: list[str],
         subject: str,
         html: str,
+        options: dict[str, Any] | None = None,
         max_attempts: int = 3,
     ) -> dict[str, Any]:
         request_id = str(uuid.uuid4())
@@ -183,7 +175,7 @@ class ResendSender:
             max_attempts=max_attempts,
         )
 
-        attempt_counter = {"count": 0}
+        attempt_counter: dict[str, int] = {"count": 0}
 
         @retry(
             stop=stop_after_attempt(max_attempts),
@@ -201,32 +193,17 @@ class ResendSender:
         def _send_with_retry() -> dict[str, Any]:
             attempt_counter["count"] += 1
             log.info("email_send_attempt", request_id=request_id, to=to, attempt=attempt_counter["count"])
-            return self.send(to, subject, html, request_id=request_id)
+            return self.send(to, subject, html, options=options, request_id=request_id)
 
         try:
             result = _send_with_retry()
-            log.info(
-                "email_send_with_retry_success",
-                request_id=request_id,
-                to=to,
-            )
+            log.info("email_send_with_retry_success", request_id=request_id, to=to)
             return result
         except ResendRateLimitError as e:
-            log.error(
-                "email_send_rate_limited",
-                request_id=request_id,
-                to=to,
-                status_code=e.status_code,
-                reset_at=e.reset_at,
-            )
+            log.error("email_send_rate_limited", request_id=request_id, to=to, status_code=e.status_code, reset_at=e.reset_at)
             raise
         except ResendConnectionError as e:
-            log.error(
-                "email_send_connection_failed",
-                request_id=request_id,
-                to=to,
-                error_message=e.message,
-            )
+            log.error("email_send_connection_failed", request_id=request_id, to=to, error_message=e.message)
             raise
         except Exception as e:
             error_info = self._parse_error(e)
@@ -239,7 +216,3 @@ class ResendSender:
                 status_code=error_info.get("status_code"),
             )
             raise
-
-
-def get_resend_sender() -> ResendSender:
-    return ResendSender()

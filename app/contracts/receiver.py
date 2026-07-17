@@ -1,5 +1,5 @@
-from typing import Protocol
+from typing import Any, Protocol
 
 
 class EmailReceiver(Protocol):
-    def receive(self, payload: dict) -> dict: ...
+    def receive(self, payload: dict[str, Any]) -> dict[str, Any]: ...

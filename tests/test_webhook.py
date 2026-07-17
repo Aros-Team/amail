@@ -8,16 +8,16 @@ from app.providers.resend.receiver import ResendReceiver
 @pytest.fixture
 def mock_settings():
     settings = MagicMock(spec=Settings)
-    settings.RESEND_API_KEY = "re_test_key"
-    settings.DOMAIN = "test.example.com"
-    settings.FORWARD_TO_EMAIL = "default@example.com"
-    settings.WEBHOOK_EMAILS = ["support", "noreply", "team"]
+    settings.resend_api_key = "re_test_key"
+    settings.domain = "test.example.com"
+    settings.forward_to_email = "default@example.com"
+    settings.webhook_emails = ["support", "noreply", "team"]
     settings.webhook_allowed_emails = [
         "support@test.example.com",
         "noreply@test.example.com",
         "team@test.example.com",
     ]
-    settings.forward_to_email = "default@example.com"
+    settings.effective_forward_to_email = "default@example.com"
     return settings
 
 
@@ -55,7 +55,7 @@ def test_resend_receiver_handles_email_received_event(receiver, mock_settings, m
     assert result["status"] == "forwarded"
     mock_sender.send.assert_called_once()
     call_args = mock_sender.send.call_args
-    assert call_args.kwargs["to"] == mock_settings.FORWARD_TO_EMAIL
+    assert call_args.kwargs["to"] == [mock_settings.forward_to_email]
     assert "FWD:" in call_args.kwargs["subject"]
 
 
@@ -124,13 +124,12 @@ def test_forward_to_email_set_forward_without_email_does_not_crash(receiver, moc
 
     result = receiver.receive(payload)
 
-    assert result["status"] == "forward_target_updated"
-    assert result["new_email"] == ""
+    assert result["status"] == "forwarded"
     mock_settings.set_forward_to_email.assert_not_called()
 
 
 def test_resend_receiver_uses_forward_to_email_property(receiver, mock_settings, mock_sender):
-    mock_settings.forward_to_email = "override@example.com"
+    mock_settings.effective_forward_to_email = "override@example.com"
 
     payload = {
         "type": "email.received",
@@ -143,10 +142,10 @@ def test_resend_receiver_uses_forward_to_email_property(receiver, mock_settings,
     }
 
     with patch.object(receiver, "_get_email_content", return_value="<p>Content</p>"):
-        result = receiver.receive(payload)
+        receiver.receive(payload)
 
     mock_sender.send.assert_called_with(
-        to="override@example.com",
+        to=["override@example.com"],
         subject="FWD: Normal email (from: sender@example.com)",
         html="<p>Content</p>",
     )

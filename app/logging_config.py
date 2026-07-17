@@ -22,8 +22,8 @@ def add_timestamp(logger: WrappedLogger, method_name: str, event_dict: EventDict
 
 def add_app_context(logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
     settings = get_settings()
-    event_dict["environment"] = settings.ENVIRONMENT
-    event_dict["service_version"] = settings.VERSION
+    event_dict["environment"] = settings.environment
+    event_dict["service_version"] = settings.version
     event_dict["service_name"] = "amail"
     return event_dict
 
@@ -138,7 +138,7 @@ def configure_logging() -> None:
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
+        level=getattr(logging, settings.log_level.upper(), logging.INFO),
     )
 
     structlog.configure(
@@ -153,7 +153,7 @@ def configure_logging() -> None:
             HumanReadableRenderer,
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
+            getattr(logging, settings.log_level.upper(), logging.INFO)
         ),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),

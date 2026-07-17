@@ -1,9 +1,8 @@
-# ----- Stage 1: builder -----
 FROM python:3.13-slim
 
 WORKDIR /app
 
-RUN pip install uv
+RUN pip install uv --no-cache-dir
 
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project
@@ -11,16 +10,6 @@ RUN uv sync --frozen --no-install-project
 COPY app/ ./app/
 COPY templates/ ./templates/
 COPY main.py .
-
-# ----- Stage 2: runtime -----
-FROM python:3.13-slim
-
-WORKDIR /app
-
-COPY --from=0 /app/.venv/ .venv/
-COPY --from=0 /app/app/ ./app/
-COPY --from=0 /app/templates/ ./templates/
-COPY --from=0 /app/main.py .
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1

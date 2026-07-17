@@ -1,8 +1,11 @@
+import time
+from typing import Any
+
+import resend
+
 from app.config import get_settings
 from app.logging_config import get_logger
 from app.providers.resend.sender import ResendSender
-import resend
-import time
 
 log = get_logger(__name__)
 
@@ -10,11 +13,11 @@ SET_FORWARD_PREFIX = "SET_FORWARD:"
 
 
 class ResendReceiver:
-    def __init__(self) -> None:
+    def __init__(self, sender: ResendSender | None = None) -> None:
         self.settings = get_settings()
-        self.sender = ResendSender()
+        self.sender = sender or ResendSender()
 
-    def receive(self, payload: dict) -> dict:
+    def receive(self, payload: dict[str, Any]) -> dict[str, Any]:
         event_type = payload.get("type")
 
         if event_type != "email.received":
@@ -46,7 +49,7 @@ class ResendReceiver:
             html = f"<p>Forwarded email from: {from_email}</p><p>Subject: {subject}</p>"
 
         self.sender.send(
-            to=self.settings.forward_to_email,
+            to=[self.settings.effective_forward_to_email],
             subject=f"FWD: {subject} (from: {from_email})",
             html=html,
         )
@@ -56,11 +59,10 @@ class ResendReceiver:
         for attempt in range(3):
             try:
                 log.info("email_content_fetch_retry", attempt=attempt + 1, email_id=email_id)
-                resend.api_key = self.settings.RESEND_API_KEY
+                resend.api_key = self.settings.resend_api_key
                 response = resend.Emails.Receiving.get(email_id=email_id)
-                log.debug("email_content_response", response_keys=response.keys() if isinstance(response, dict) else "not_dict")
+                log.debug("email_content_response", has_response=response is not None)
 
-                # La SDK de Python devuelve el contenido directamente, no en "data"
                 if isinstance(response, dict):
                     email_info = response.get("data") or response
                     content = email_info.get("html") or email_info.get("text")
@@ -77,7 +79,3 @@ class ResendReceiver:
                 time.sleep(2)
 
         return None
-
-
-def get_resend_receiver() -> ResendReceiver:
-    return ResendReceiver()

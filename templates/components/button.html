@@ -1,0 +1,5 @@
+{% macro cta_button(text, url, color="#1a73e8") %}
+<div style="text-align:center;margin:24px 0">
+  <a href="{{ url }}" style="display:inline-block;background-color:{{ color }};color:#fff;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:16px">{{ text }}</a>
+</div>
+{% endmacro %}
