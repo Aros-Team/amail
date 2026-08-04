@@ -54,6 +54,15 @@ class BatchReport(BaseModel):
     admin_email: str | None = None
 
 
+class RenderRequest(BaseModel):
+    template: str
+    data: dict[str, Any] = {}
+
+
+class RenderResponse(BaseModel):
+    html: str
+
+
 class WebhookPayload(BaseModel):
     type: str
     data: dict[str, Any] = {}

@@ -3,6 +3,7 @@ import json
 
 import resend
 from fastapi import APIRouter, HTTPException, Request
+from jinja2 import TemplateNotFound
 
 from app.config import get_settings
 from app.logging_config import get_logger
@@ -12,12 +13,14 @@ from app.models.schemas import (
     BatchReport,
     EmailRequest,
     EmailResponse,
+    RenderRequest,
+    RenderResponse,
     TemplateInfo,
     TemplatesResponse,
 )
 from app.providers import get_receiver
 from app.services.email_service import EmailService
-from app.services.templates import get_templates
+from app.services.templates import get_templates, render_template
 
 log = get_logger(__name__)
 
@@ -39,6 +42,24 @@ def list_templates():
             for name, info in templates.items()
         ]
     )
+
+
+@router.post(
+    "/templates/render",
+    response_model=RenderResponse,
+    summary="Render a template",
+    description="Renders a template with the given data and returns the HTML. Useful for the template preview tool.",
+    responses={
+        200: {"description": "Rendered HTML"},
+        404: {"model": ErrorDetail, "description": "Template not found"},
+    },
+)
+def render_template_endpoint(request: RenderRequest):
+    try:
+        html = render_template(request.template, request.data)
+        return RenderResponse(html=html)
+    except TemplateNotFound:
+        raise HTTPException(status_code=404, detail=f"Template '{request.template}' not found")
 
 
 @router.post(
