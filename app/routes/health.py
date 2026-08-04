@@ -6,7 +6,11 @@ from fastapi import APIRouter, HTTPException
 
 from app.config import get_settings
 from app.logging_config import get_logger
-from app.models.schemas import EmailHealthResponse, HealthResponse, WebhookHealthResponse
+from app.models.schemas import (
+    EmailHealthResponse,
+    HealthResponse,
+    WebhookHealthResponse,
+)
 
 router = APIRouter(tags=["health"])
 log = get_logger(__name__)
@@ -53,7 +57,11 @@ def email_health_check():
         duration_ms = (time.perf_counter() - start_time) * 1000
 
         resend_id = response.get("id", "")
-        log.info("email_health_check_success", resend_id=resend_id, duration_ms=round(duration_ms, 2))
+        log.info(
+            "email_health_check_success",
+            resend_id=resend_id,
+            duration_ms=round(duration_ms, 2),
+        )
 
         return EmailHealthResponse(
             status="healthy",
@@ -68,7 +76,11 @@ def email_health_check():
         duration_ms = (time.perf_counter() - start_time) * 1000
         status_code = getattr(e, "status_code", 503)
 
-        log.error("email_health_check_failure", duration_ms=round(duration_ms, 2), error=str(e))
+        log.error(
+            "email_health_check_failure",
+            duration_ms=round(duration_ms, 2),
+            error=str(e),
+        )
 
         raise HTTPException(
             status_code=status_code,

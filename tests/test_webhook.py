@@ -30,15 +30,21 @@ def mock_sender():
 
 @pytest.fixture
 def receiver(mock_settings, mock_sender):
-    with patch("app.providers.resend.receiver.get_settings", return_value=mock_settings):
-        with patch("app.providers.resend.receiver.ResendSender", return_value=mock_sender):
+    with patch(
+        "app.providers.resend.receiver.get_settings", return_value=mock_settings
+    ):
+        with patch(
+            "app.providers.resend.receiver.ResendSender", return_value=mock_sender
+        ):
             r = ResendReceiver()
             r.settings = mock_settings
             r.sender = mock_sender
             return r
 
 
-def test_resend_receiver_handles_email_received_event(receiver, mock_settings, mock_sender):
+def test_resend_receiver_handles_email_received_event(
+    receiver, mock_settings, mock_sender
+):
     payload = {
         "type": "email.received",
         "data": {
@@ -49,7 +55,9 @@ def test_resend_receiver_handles_email_received_event(receiver, mock_settings, m
         },
     }
 
-    with patch.object(receiver, "_get_email_content", return_value="<p>Test content</p>"):
+    with patch.object(
+        receiver, "_get_email_content", return_value="<p>Test content</p>"
+    ):
         result = receiver.receive(payload)
 
     assert result["status"] == "forwarded"
@@ -90,7 +98,9 @@ def test_resend_receiver_ignores_emails_to_non_allowed_addresses(receiver, mock_
     mock_sender.send.assert_not_called()
 
 
-def test_forward_to_email_can_be_updated_via_email_command(receiver, mock_settings, mock_sender):
+def test_forward_to_email_can_be_updated_via_email_command(
+    receiver, mock_settings, mock_sender
+):
     payload = {
         "type": "email.received",
         "data": {
@@ -111,7 +121,9 @@ def test_forward_to_email_can_be_updated_via_email_command(receiver, mock_settin
     mock_sender.send.assert_not_called()
 
 
-def test_forward_to_email_set_forward_without_email_does_not_crash(receiver, mock_settings, mock_sender):
+def test_forward_to_email_set_forward_without_email_does_not_crash(
+    receiver, mock_settings, mock_sender
+):
     payload = {
         "type": "email.received",
         "data": {
@@ -128,7 +140,9 @@ def test_forward_to_email_set_forward_without_email_does_not_crash(receiver, moc
     mock_settings.set_forward_to_email.assert_not_called()
 
 
-def test_resend_receiver_uses_forward_to_email_property(receiver, mock_settings, mock_sender):
+def test_resend_receiver_uses_forward_to_email_property(
+    receiver, mock_settings, mock_sender
+):
     mock_settings.effective_forward_to_email = "override@example.com"
 
     payload = {

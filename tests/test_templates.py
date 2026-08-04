@@ -46,42 +46,54 @@ def test_render_custom():
 
 
 def test_render_with_brand_context():
-    html = render_template("action", {
-        "message": "Welcome",
-        "brand_name": "MyApp",
-        "brand_color": "#ff0000",
-        "lang": "en",
-    })
+    html = render_template(
+        "action",
+        {
+            "message": "Welcome",
+            "brand_name": "MyApp",
+            "brand_color": "#ff0000",
+            "lang": "en",
+        },
+    )
     assert "MyApp" in html
     assert "#ff0000" in html or "ff0000" in html
 
 
 def test_render_action_with_cta():
-    html = render_template("action", {
-        "message": "Click below",
-        "cta_text": "Go",
-        "cta_url": "https://example.com",
-        "lang": "en",
-    })
+    html = render_template(
+        "action",
+        {
+            "message": "Click below",
+            "cta_text": "Go",
+            "cta_url": "https://example.com",
+            "lang": "en",
+        },
+    )
     assert "Go" in html
     assert "https://example.com" in html
 
 
 def test_render_action_with_notification():
-    html = render_template("action", {
-        "message": "Test",
-        "notification": {"message": "Extra info"},
-        "lang": "en",
-    })
+    html = render_template(
+        "action",
+        {
+            "message": "Test",
+            "notification": {"message": "Extra info"},
+            "lang": "en",
+        },
+    )
     assert "Extra info" in html
 
 
 def test_render_verification_with_expiry():
-    html = render_template("verification", {
-        "code": "999999",
-        "expiry": "5 minutes",
-        "lang": "en",
-    })
+    html = render_template(
+        "verification",
+        {
+            "code": "999999",
+            "expiry": "5 minutes",
+            "lang": "en",
+        },
+    )
     assert "999999" in html
     assert "Expires in" in html
     assert "5 minutes" in html

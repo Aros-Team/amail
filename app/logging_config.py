@@ -9,18 +9,24 @@ from structlog.typing import EventDict, WrappedLogger
 from app.config import get_settings
 
 
-def add_request_id(logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
+def add_request_id(
+    logger: WrappedLogger, method_name: str, event_dict: EventDict
+) -> EventDict:
     if "request_id" not in event_dict:
         event_dict["request_id"] = str(uuid4())
     return event_dict
 
 
-def add_timestamp(logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
+def add_timestamp(
+    logger: WrappedLogger, method_name: str, event_dict: EventDict
+) -> EventDict:
     event_dict["timestamp"] = datetime.now(timezone.utc).isoformat()
     return event_dict
 
 
-def add_app_context(logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
+def add_app_context(
+    logger: WrappedLogger, method_name: str, event_dict: EventDict
+) -> EventDict:
     settings = get_settings()
     event_dict["environment"] = settings.environment
     event_dict["service_version"] = settings.version
@@ -47,7 +53,12 @@ def HumanReadableRenderer(
 
     parts = [f"[{timestamp}]"]
 
-    level_icons = {"info": "INFO ", "warning": "WARN ", "error": "ERROR", "success": "OK    "}
+    level_icons = {
+        "info": "INFO ",
+        "warning": "WARN ",
+        "error": "ERROR",
+        "success": "OK    ",
+    }
     parts.append(level_icons.get(level, "•").upper())
 
     if event == "email_send_start":
@@ -72,18 +83,28 @@ def HumanReadableRenderer(
             msg += f" | {error_message}"
         if status_code:
             msg += f" | HTTP {status_code}"
-        if error_repr and error_type in ("connection_error", "sdk_error", "unknown_error"):
+        if error_repr and error_type in (
+            "connection_error",
+            "sdk_error",
+            "unknown_error",
+        ):
             msg += f" | ex: {error_repr[:100]}"
         parts.append(msg)
 
     elif event == "email_send_with_retry_start":
-        parts.append(f"Starting email send to {to} with {event_dict.get('max_attempts', 3)} attempts [req: {request_id[:8]}...]" if request_id else f"Starting email send to {to} with {event_dict.get('max_attempts', 3)} attempts")
+        parts.append(
+            f"Starting email send to {to} with {event_dict.get('max_attempts', 3)} attempts [req: {request_id[:8]}...]"
+            if request_id
+            else f"Starting email send to {to} with {event_dict.get('max_attempts', 3)} attempts"
+        )
 
     elif event == "email_send_attempt":
         parts.append(f"Email send attempt {event_dict.get('attempt', 0)} to {to}")
 
     elif event == "email_send_retry":
-        parts.append(f"Retrying email to {to} (attempt {event_dict.get('attempt', 0)}/{event_dict.get('max_attempts', 3)}) after {event_dict.get('wait_seconds', 0):.1f}s")
+        parts.append(
+            f"Retrying email to {to} (attempt {event_dict.get('attempt', 0)}/{event_dict.get('max_attempts', 3)}) after {event_dict.get('wait_seconds', 0):.1f}s"
+        )
 
     elif event == "email_send_with_retry_success":
         parts.append(f"Email sent to {to} after retry")

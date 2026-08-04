@@ -16,32 +16,81 @@ TEMPLATE_METADATA: dict[str, dict[str, Any]] = {
     "action": {
         "description": "Call-to-action email (welcome, password reset, invitation)",
         "variables": [
-            TemplateVariable(name="message", type="string", description="Main message body", required=True),
-            TemplateVariable(name="cta_text", type="string", description="Button label", required=False),
-            TemplateVariable(name="cta_url", type="string", description="Button URL", required=False),
-            TemplateVariable(name="expiry", type="string", description="Expiration time", required=False),
-            TemplateVariable(name="notification", type="object", description="Additional notice", required=False),
+            TemplateVariable(
+                name="message",
+                type="string",
+                description="Main message body",
+                required=True,
+            ),
+            TemplateVariable(
+                name="cta_text",
+                type="string",
+                description="Button label",
+                required=False,
+            ),
+            TemplateVariable(
+                name="cta_url", type="string", description="Button URL", required=False
+            ),
+            TemplateVariable(
+                name="expiry",
+                type="string",
+                description="Expiration time",
+                required=False,
+            ),
+            TemplateVariable(
+                name="notification",
+                type="object",
+                description="Additional notice",
+                required=False,
+            ),
         ],
     },
     "notification": {
         "description": "General notification or alert",
         "variables": [
-            TemplateVariable(name="heading", type="string", description="Notification heading", required=False),
-            TemplateVariable(name="message", type="string", description="Content body", required=True),
-            TemplateVariable(name="details", type="object", description="Key-value detail list", required=False),
+            TemplateVariable(
+                name="heading",
+                type="string",
+                description="Notification heading",
+                required=False,
+            ),
+            TemplateVariable(
+                name="message", type="string", description="Content body", required=True
+            ),
+            TemplateVariable(
+                name="details",
+                type="object",
+                description="Key-value detail list",
+                required=False,
+            ),
         ],
     },
     "verification": {
         "description": "Verification or one-time code",
         "variables": [
-            TemplateVariable(name="code", type="string", description="Verification code", required=True),
-            TemplateVariable(name="expiry", type="string", description="Expiration time", required=False),
+            TemplateVariable(
+                name="code",
+                type="string",
+                description="Verification code",
+                required=True,
+            ),
+            TemplateVariable(
+                name="expiry",
+                type="string",
+                description="Expiration time",
+                required=False,
+            ),
         ],
     },
     "custom": {
         "description": "Custom raw HTML content wrapped in base layout",
         "variables": [
-            TemplateVariable(name="content", type="string", description="Raw HTML body content", required=True),
+            TemplateVariable(
+                name="content",
+                type="string",
+                description="Raw HTML body content",
+                required=True,
+            ),
         ],
     },
 }

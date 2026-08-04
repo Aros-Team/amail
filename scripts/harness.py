@@ -7,7 +7,7 @@ Checks, in order:
   1. Environment (uv / python present)
   2. Base harness files exist (AGENTS.md, activities.json, progress/, docs/)
   3. activities.json is valid (statuses, types, one in_progress at most)
-  4. Code quality (ruff check)
+  4. Code quality (ruff check + ruff format --check)
   5. Compilation (python -m compileall)
   6. Tests (pytest)
 
@@ -153,9 +153,15 @@ print("\n── 4. Code Quality (ruff) ─────────────�
 
 result = run(["uv", "run", "ruff", "check", "."])
 if result.returncode == 0:
-    ok("Ruff passed")
+    ok("Ruff check passed")
 else:
-    fail("Ruff errors found")
+    fail("Ruff check errors found")
+
+result = run(["uv", "run", "ruff", "format", "--check", "."])
+if result.returncode == 0:
+    ok("Ruff format clean")
+else:
+    fail("Ruff format drift (run 'uv run ruff format .')")
 
 print("\n── 5. Compilation ─────────────────────────────────────")
 

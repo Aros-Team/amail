@@ -38,7 +38,9 @@ def list_templates():
     templates = get_templates()
     return TemplatesResponse(
         templates=[
-            TemplateInfo(name=name, description=info["description"], variables=info["variables"])
+            TemplateInfo(
+                name=name, description=info["description"], variables=info["variables"]
+            )
             for name, info in templates.items()
         ]
     )
@@ -59,7 +61,9 @@ def render_template_endpoint(request: RenderRequest):
         html = render_template(request.template, request.data)
         return RenderResponse(html=html)
     except TemplateNotFound:
-        raise HTTPException(status_code=404, detail=f"Template '{request.template}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Template '{request.template}' not found"
+        )
 
 
 @router.post(
@@ -69,7 +73,10 @@ def render_template_endpoint(request: RenderRequest):
     description="Send an email using a named template. Accepts a single recipient or a list.",
     responses={
         200: {"description": "Email sent"},
-        400: {"model": ErrorDetail, "description": "Template not found or validation error"},
+        400: {
+            "model": ErrorDetail,
+            "description": "Template not found or validation error",
+        },
         500: {"model": ErrorDetail, "description": "Internal error"},
     },
 )
@@ -124,11 +131,17 @@ async def receive_email(request: Request):
     try:
         verified = resend.webhooks.verify(
             payload=raw_body,
-            headers={"id": svix_id, "timestamp": svix_timestamp, "signature": svix_signature},
+            headers={
+                "id": svix_id,
+                "timestamp": svix_timestamp,
+                "signature": svix_signature,
+            },
             secret=settings.resend_webhook_secret,
         )
     except Exception:
-        raise HTTPException(status_code=400, detail="Webhook signature verification failed")
+        raise HTTPException(
+            status_code=400, detail="Webhook signature verification failed"
+        )
 
     try:
         payload_dict = json.loads(verified) if isinstance(verified, str) else verified
@@ -137,6 +150,8 @@ async def receive_email(request: Request):
 
     receiver = get_receiver()
     if receiver is None:
-        raise HTTPException(status_code=500, detail="No receiver configured for active provider")
+        raise HTTPException(
+            status_code=500, detail="No receiver configured for active provider"
+        )
 
     return await asyncio.to_thread(receiver.receive, payload_dict)

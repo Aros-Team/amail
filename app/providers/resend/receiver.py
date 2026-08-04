@@ -30,10 +30,14 @@ class ResendReceiver:
         email_id = email_data.get("email_id", "")
 
         if subject.startswith(SET_FORWARD_PREFIX):
-            new_email = subject[len(SET_FORWARD_PREFIX):].strip()
+            new_email = subject[len(SET_FORWARD_PREFIX) :].strip()
             if new_email:
                 self.settings.set_forward_to_email(new_email)
-                log.info("forward_email_command_executed", new_email=new_email, email_id=email_id)
+                log.info(
+                    "forward_email_command_executed",
+                    new_email=new_email,
+                    email_id=email_id,
+                )
                 return {"status": "forward_target_updated", "new_email": new_email}
 
         allowed_emails = self.settings.webhook_allowed_emails
@@ -58,7 +62,9 @@ class ResendReceiver:
     def _get_email_content(self, email_id: str) -> str | None:
         for attempt in range(3):
             try:
-                log.info("email_content_fetch_retry", attempt=attempt + 1, email_id=email_id)
+                log.info(
+                    "email_content_fetch_retry", attempt=attempt + 1, email_id=email_id
+                )
                 resend.api_key = self.settings.resend_api_key
                 response = resend.Emails.Receiving.get(email_id=email_id)
                 log.debug("email_content_response", has_response=response is not None)
@@ -67,12 +73,23 @@ class ResendReceiver:
                     email_info = response.get("data") or response
                     content = email_info.get("html") or email_info.get("text")
                     if content:
-                        log.info("email_content_fetched", content_length=len(content), email_id=email_id)
+                        log.info(
+                            "email_content_fetched",
+                            content_length=len(content),
+                            email_id=email_id,
+                        )
                         return content
                     else:
-                        log.warning("email_content_missing_fields", available_keys=list(email_info.keys()) if email_info else [])
+                        log.warning(
+                            "email_content_missing_fields",
+                            available_keys=list(email_info.keys())
+                            if email_info
+                            else [],
+                        )
             except Exception as e:
-                log.error("email_content_fetch_exception", error=str(e), email_id=email_id)
+                log.error(
+                    "email_content_fetch_exception", error=str(e), email_id=email_id
+                )
 
             if attempt < 2:
                 log.info("email_content_retry_wait", attempt=attempt + 1)

@@ -3,7 +3,12 @@ import uuid
 from typing import Any
 
 import resend
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from app.config import get_settings
 from app.logging_config import get_logger
@@ -97,7 +102,9 @@ class ResendSender:
             }
 
             if error_type == "rate_limit":
-                raise ResendRateLimitError(**error_kwargs, reset_at=error_info.get("reset_at"))
+                raise ResendRateLimitError(
+                    **error_kwargs, reset_at=error_info.get("reset_at")
+                )
             elif error_type == "server_error":
                 raise ResendServerError(**error_kwargs)
             elif error_type == "connection_error":
@@ -120,16 +127,35 @@ class ResendSender:
 
         if status_code is None:
             error_lower = error_msg.lower()
-            if "401" in error_msg or "unauthorized" in error_lower or "api key" in error_lower:
+            if (
+                "401" in error_msg
+                or "unauthorized" in error_lower
+                or "api key" in error_lower
+            ):
                 status_code = 401
                 error_type = "authentication_error"
             elif "429" in error_msg or "rate limit" in error_lower:
                 status_code = 429
                 error_type = "rate_limit"
-            elif any(x in error_lower for x in ["connection", "timeout", "network", "dns", "refused", "ssl", "tls"]):
+            elif any(
+                x in error_lower
+                for x in [
+                    "connection",
+                    "timeout",
+                    "network",
+                    "dns",
+                    "refused",
+                    "ssl",
+                    "tls",
+                ]
+            ):
                 status_code = None
                 error_type = "connection_error"
-            elif "attributeerror" in error_lower or "'dict' object" in error_lower or "'NoneType'" in error_lower:
+            elif (
+                "attributeerror" in error_lower
+                or "'dict' object" in error_lower
+                or "'NoneType'" in error_lower
+            ):
                 status_code = None
                 error_type = "sdk_error"
             else:
@@ -138,25 +164,58 @@ class ResendSender:
         reset_at = getattr(e, "reset_at", None)
 
         if status_code == 429:
-            return {"message": error_msg, "status_code": status_code, "error_type": "rate_limit", "reset_at": reset_at}
+            return {
+                "message": error_msg,
+                "status_code": status_code,
+                "error_type": "rate_limit",
+                "reset_at": reset_at,
+            }
 
         if status_code in self.NON_RETRYABLE_ERRORS:
             if status_code == 401:
-                return {"message": error_msg, "status_code": status_code, "error_type": "authentication_error"}
+                return {
+                    "message": error_msg,
+                    "status_code": status_code,
+                    "error_type": "authentication_error",
+                }
             if status_code == 400:
-                return {"message": error_msg, "status_code": status_code, "error_type": "validation_error"}
-            return {"message": error_msg, "status_code": status_code, "error_type": "client_error"}
+                return {
+                    "message": error_msg,
+                    "status_code": status_code,
+                    "error_type": "validation_error",
+                }
+            return {
+                "message": error_msg,
+                "status_code": status_code,
+                "error_type": "client_error",
+            }
 
         if status_code in self.RETRYABLE_ERRORS:
-            return {"message": error_msg, "status_code": status_code, "error_type": "server_error"}
+            return {
+                "message": error_msg,
+                "status_code": status_code,
+                "error_type": "server_error",
+            }
 
         if error_type == "connection_error":
-            return {"message": error_msg, "status_code": None, "error_type": "connection_error"}
+            return {
+                "message": error_msg,
+                "status_code": None,
+                "error_type": "connection_error",
+            }
 
         if error_type == "sdk_error":
-            return {"message": error_msg, "status_code": None, "error_type": "sdk_error"}
+            return {
+                "message": error_msg,
+                "status_code": None,
+                "error_type": "sdk_error",
+            }
 
-        return {"message": error_msg, "status_code": status_code, "error_type": error_type}
+        return {
+            "message": error_msg,
+            "status_code": status_code,
+            "error_type": error_type,
+        }
 
     def send_with_retry(
         self,
@@ -180,19 +239,28 @@ class ResendSender:
         @retry(
             stop=stop_after_attempt(max_attempts),
             wait=wait_exponential(multiplier=1, min=1, max=10),
-            retry=retry_if_exception_type((ResendRateLimitError, ResendServerError, ResendConnectionError)),
+            retry=retry_if_exception_type(
+                (ResendRateLimitError, ResendServerError, ResendConnectionError)
+            ),
             before_sleep=lambda retry_state: log.warning(
                 "email_send_retry",
                 request_id=request_id,
                 to=to,
                 attempt=retry_state.attempt_number,
                 max_attempts=max_attempts,
-                wait_seconds=retry_state.next_action.sleep if retry_state.next_action else None,
+                wait_seconds=retry_state.next_action.sleep
+                if retry_state.next_action
+                else None,
             ),
         )
         def _send_with_retry() -> dict[str, Any]:
             attempt_counter["count"] += 1
-            log.info("email_send_attempt", request_id=request_id, to=to, attempt=attempt_counter["count"])
+            log.info(
+                "email_send_attempt",
+                request_id=request_id,
+                to=to,
+                attempt=attempt_counter["count"],
+            )
             return self.send(to, subject, html, options=options, request_id=request_id)
 
         try:
@@ -200,10 +268,21 @@ class ResendSender:
             log.info("email_send_with_retry_success", request_id=request_id, to=to)
             return result
         except ResendRateLimitError as e:
-            log.error("email_send_rate_limited", request_id=request_id, to=to, status_code=e.status_code, reset_at=e.reset_at)
+            log.error(
+                "email_send_rate_limited",
+                request_id=request_id,
+                to=to,
+                status_code=e.status_code,
+                reset_at=e.reset_at,
+            )
             raise
         except ResendConnectionError as e:
-            log.error("email_send_connection_failed", request_id=request_id, to=to, error_message=e.message)
+            log.error(
+                "email_send_connection_failed",
+                request_id=request_id,
+                to=to,
+                error_message=e.message,
+            )
             raise
         except Exception as e:
             error_info = self._parse_error(e)

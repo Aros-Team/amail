@@ -30,7 +30,9 @@ def build_failure_report(results: list[EmailResponse]) -> str:
 </body></html>"""
 
 
-def send_failure_report(results: list[EmailResponse], admin_email: str, sender: Any) -> None:
+def send_failure_report(
+    results: list[EmailResponse], admin_email: str, sender: Any
+) -> None:
     html = build_failure_report(results)
     if not html:
         return
@@ -41,6 +43,10 @@ def send_failure_report(results: list[EmailResponse], admin_email: str, sender: 
             subject="[Amail] Batch Send Failure Report",
             html=html,
         )
-        log.info("failure_report_sent", admin_email=admin_email, failed_count=sum(1 for r in results if not r.success))
+        log.info(
+            "failure_report_sent",
+            admin_email=admin_email,
+            failed_count=sum(1 for r in results if not r.success),
+        )
     except Exception as e:
         log.error("failure_report_send_failed", admin_email=admin_email, error=str(e))

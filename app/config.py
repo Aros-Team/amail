@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     webhook_emails: list[str] = ["support", "noreply", "team"]
     email_provider: str = "resend"
     environment: str = "development"
-    version: str = "1.0.0"
+    version: str = "1.0.0"  # x-release-please-version
     log_level: str = "INFO"
 
     _forward_to_email_override: str | None = None
