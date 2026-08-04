@@ -31,6 +31,7 @@ Your core responsibilities:
 4. **Review test coverage** - Ensure adequate unit tests, integration tests, or manual test evidence
 5. **Check documentation** - Verify README, inline comments, and API documentation are accurate and complete
 6. **Assess security and performance** - Identify obvious security vulnerabilities or performance concerns
+7. **Audit test quality** - Apply `docs/testing.md`: test-first (would the test fail without the implementation?), mutation mindset, reject containment-only/tautological asserts, tests that only check "no crash", over-mocked tests, and missing negative/edge paths
 
 ## Review Workflow
 

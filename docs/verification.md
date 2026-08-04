@@ -68,6 +68,7 @@ The reviewer agent must verify:
 - [ ] No hardcoded branding in templates
 - [ ] Logs structured, with `request_id` on sends, no secrets
 - [ ] Tests added and mocked (no real API calls)
+- [ ] Tests follow `docs/testing.md` (mutation mindset, exact asserts, negative/edge paths, no tautologies)
 - [ ] No real credentials or `.env` content committed
 
 ---

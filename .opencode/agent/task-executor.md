@@ -53,13 +53,29 @@ Before starting any task, you MUST:
 
 1. Read `docs/conventions.md` for coding standards
 2. Read `docs/architecture.md` for project patterns
-3. Understand the activity requirements from the task assignment
+3. Read `docs/testing.md` for the testing policy (test-first)
+4. Understand the activity requirements from the task assignment
+
+## Test-First Workflow (TDD)
+
+You implement **test-first**. The test is the contract; never write
+implementation before its failing test exists.
+
+1. **Write the test** for the new function/route in `tests/test_*.py`
+2. **Confirm RED**: `uv run pytest tests/test_x.py -k <name>` must fail
+   (import error or assertion). If it passes before any implementation exists,
+   the test asserts nothing meaningful — rewrite it.
+3. **Implement** the minimal code to make it pass
+4. **Confirm GREEN**
+5. **Refactor** — keep it green
+6. Report both the test and the implementation to the leader
 
 ## Commands
 
 - Harness: `uv run python scripts/harness.py`
 - Lint: `uv run ruff check .`
 - Tests: `uv run pytest`
+- Targeted test: `uv run pytest tests/test_x.py -k <test_name>`
 
 ## Communication
 
@@ -68,6 +84,7 @@ Before starting any task, you MUST:
 ## Hard Rules
 
 - Follow `docs/conventions.md` exactly
+- Follow `docs/testing.md` — test-first, mutation mindset
 - Never skip tests
 - Leave no TODOs without context
 - Clean commits only (if committing)

@@ -81,6 +81,7 @@ base_files = [
     "docs/conventions.md",
     "docs/verification.md",
     "docs/CHECKPOINTS.md",
+    "docs/testing.md",
 ]
 
 for f in base_files:

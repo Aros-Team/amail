@@ -162,11 +162,14 @@ def send_email(request: EmailRequest): ...
 
 ## 10. Tests
 
+- Follow `docs/testing.md` (Testing Policy) — a test's value is its ability to
+  fail when the code is wrong (**mutation mindset**).
 - `pytest` + `pytest-asyncio`; fixtures in `tests/conftest.py`.
 - Mock provider boundaries (`MagicMock`, `patch("app.providers.resend.receiver.get_settings")`).
 - Never make real network calls in tests.
-- Name test functions `test_<behavior>` in `tests/test_*.py`.
-- New functionality must have tests; run `uv run pytest` before declaring done.
+- Name test functions `test_<unit>_<behavior>_<condition>` in `tests/test_*.py`.
+- New functionality must have tests (happy + error + edge paths); run
+  `uv run pytest` before declaring done.
 
 ---
 

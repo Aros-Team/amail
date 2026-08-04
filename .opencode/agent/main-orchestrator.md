@@ -34,6 +34,8 @@ You are the Main Orchestrator Agent for the Amail project, responsible for coord
   - Relevant context from previous phases
   - Expected output format
   - Any constraints or requirements
+  - **Test-first instruction**: every implementer writes the failing test
+    before the implementation (RED → GREEN), per `docs/testing.md`
 
 ### Phase 3: Monitoring & Aggregation
 - Await completion notifications
@@ -160,6 +162,7 @@ When delegating, instruct sub-agents to read their role definition:
 
 - Only one activity at a time
 - Never declare done without green tests (`uv run python scripts/harness.py`)
+- Enforce test-first: when decomposing an activity, a tests task precedes its implementation task, and implementers write the failing test before the code (`docs/testing.md`)
 - Document all work in `progress/current.md`
 - Keep `activities.json` updated
 - Read `docs/conventions.md` and `docs/architecture.md` before implementing
