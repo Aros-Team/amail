@@ -110,7 +110,7 @@ def test_render_escapes_user_input_to_prevent_xss():
 
 ---
 
-## 4. Minimum coverage per new function/route
+## 5. Minimum coverage per new function/route
 
 For every new public function or route, ship all four:
 
@@ -123,7 +123,7 @@ A new function without all four is not `done`; the reviewer must reject it.
 
 ---
 
-## 5. Reviewer gate
+## 6. Reviewer gate
 
 The reviewer checks every PR/activity against this policy:
 
