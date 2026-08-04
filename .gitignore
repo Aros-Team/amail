@@ -5,3 +5,7 @@
 **/venv
 deploy.sh
 informe.md
+
+# Harness tracking (session state, not tracked)
+activities.json
+progress/*
