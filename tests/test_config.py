@@ -25,8 +25,9 @@ def test_effective_forward_to_email_override():
     assert s.effective_forward_to_email == "override@example.com"
 
 
-def test_effective_forward_to_email_override_reset():
+def test_forward_override_is_isolated_per_instance():
     s = Settings(forward_to_email="default@example.com")
+    other = Settings(forward_to_email="default@example.com")
     s.set_forward_to_email("override@example.com")
-    s._forward_to_email_override = None
-    assert s.effective_forward_to_email == "default@example.com"
+    assert s.effective_forward_to_email == "override@example.com"
+    assert other.effective_forward_to_email == "default@example.com"

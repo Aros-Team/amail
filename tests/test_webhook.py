@@ -64,7 +64,7 @@ def test_resend_receiver_handles_email_received_event(
     mock_sender.send.assert_called_once()
     call_args = mock_sender.send.call_args
     assert call_args.kwargs["to"] == [mock_settings.forward_to_email]
-    assert "FWD:" in call_args.kwargs["subject"]
+    assert call_args.kwargs["subject"] == "FWD: Test Email (from: sender@example.com)"
 
 
 def test_resend_receiver_ignores_non_email_received_events(receiver, mock_sender):
@@ -121,7 +121,7 @@ def test_forward_to_email_can_be_updated_via_email_command(
     mock_sender.send.assert_not_called()
 
 
-def test_forward_to_email_set_forward_without_email_does_not_crash(
+def test_set_forward_without_email_is_forwarded_as_normal_email(
     receiver, mock_settings, mock_sender
 ):
     payload = {
@@ -134,10 +134,13 @@ def test_forward_to_email_set_forward_without_email_does_not_crash(
         },
     }
 
-    result = receiver.receive(payload)
+    with patch.object(receiver, "_get_email_content", return_value="<p>Content</p>"):
+        result = receiver.receive(payload)
 
     assert result["status"] == "forwarded"
     mock_settings.set_forward_to_email.assert_not_called()
+    subject = mock_sender.send.call_args.kwargs["subject"]
+    assert subject == "FWD: SET_FORWARD: (from: admin@example.com)"
 
 
 def test_resend_receiver_uses_forward_to_email_property(

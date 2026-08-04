@@ -5,11 +5,11 @@ from main import app
 client = TestClient(app)
 
 
-def test_list_templates():
+def test_list_templates_returns_exact_set():
     resp = client.get("/api/v1/templates")
     assert resp.status_code == 200
     names = {t["name"] for t in resp.json()["templates"]}
-    assert {"action", "notification", "verification", "custom"} <= names
+    assert names == {"action", "notification", "verification", "custom"}
 
 
 def test_render_template_ok():
@@ -18,7 +18,9 @@ def test_render_template_ok():
         json={"template": "verification", "data": {"code": "123456", "lang": "en"}},
     )
     assert resp.status_code == 200
-    assert "123456" in resp.json()["html"]
+    html = resp.json()["html"]
+    assert html.count("123456") == 1
+    assert ">123456</span>" in html
 
 
 def test_render_template_not_found():
@@ -27,9 +29,9 @@ def test_render_template_not_found():
         json={"template": "does_not_exist", "data": {}},
     )
     assert resp.status_code == 404
-    assert "not found" in resp.json()["detail"]
+    assert resp.json()["detail"] == "Template 'does_not_exist' not found"
 
 
-def test_render_invalid_payload():
+def test_render_invalid_payload_missing_template():
     resp = client.post("/api/v1/templates/render", json={"data": {}})
     assert resp.status_code == 422
