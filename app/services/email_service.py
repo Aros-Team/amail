@@ -1,6 +1,9 @@
+"""Email sending and webhook handling service."""
+
 from typing import Any
 
 from app.config import get_settings
+from app.logging_config import get_logger
 from app.models.schemas import (
     BatchEmailRequest,
     BatchReport,
@@ -11,18 +14,20 @@ from app.providers import get_provider
 from app.providers.base import EmailProvider
 from app.services.batch_reporter import send_failure_report
 from app.services.templates import render_template
-from app.logging_config import get_logger
 
 log = get_logger(__name__)
 
 
 class EmailService:
+    """Send emails and process incoming webhooks through the active provider."""
+
     def __init__(self, provider: EmailProvider | None = None) -> None:
         self._provider = provider or get_provider()
         self.sender = self._provider.sender
         self.receiver = self._provider.receiver
 
     def send(self, req: EmailRequest) -> EmailResponse:
+        """Send a single email built from the given request."""
         to_list = [req.to] if isinstance(req.to, str) else req.to
 
         options: dict[str, Any] = {}
@@ -62,6 +67,7 @@ class EmailService:
             )
 
     def send_batch(self, req: BatchEmailRequest) -> BatchReport:
+        """Send multiple emails and return a per-email batch report."""
         results: list[EmailResponse] = []
 
         for email_req in req.emails:
@@ -91,6 +97,7 @@ class EmailService:
         return report
 
     def receive_webhook(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Forward a webhook payload to the configured receiver."""
         if self.receiver is None:
             return {"status": "error", "reason": "no receiver configured"}
         return self.receiver.receive(payload)

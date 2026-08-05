@@ -1,7 +1,9 @@
+"""Provider registry and factory helpers."""
+
 from typing import TYPE_CHECKING
 
-from app.contracts.sender import EmailSender
 from app.contracts.receiver import EmailReceiver
+from app.contracts.sender import EmailSender
 
 if TYPE_CHECKING:
     from app.providers.base import EmailProvider
@@ -10,10 +12,12 @@ _registry: dict[str, type["EmailProvider"]] = {}
 
 
 def register(name: str, cls: type["EmailProvider"]) -> None:
+    """Register a provider class under the given name."""
     _registry[name] = cls
 
 
 def get_provider(name: str | None = None) -> "EmailProvider":
+    """Return an instantiated provider, optionally selecting by name."""
     from app.config import get_settings
 
     provider_name = name or get_settings().email_provider
@@ -24,10 +28,12 @@ def get_provider(name: str | None = None) -> "EmailProvider":
 
 
 def get_sender() -> EmailSender:
+    """Return the active provider's sender."""
     return get_provider().sender
 
 
 def get_receiver() -> EmailReceiver | None:
+    """Return the active provider's receiver, if any."""
     return get_provider().receiver
 
 

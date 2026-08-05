@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Verification harness for the amail project.
+"""
+Verification harness for the amail project.
 
 Run with: uv run python scripts/harness.py
 
@@ -33,24 +34,29 @@ exit_code = 0
 
 
 def ok(msg: str) -> None:
+    """Print a success message in green."""
     print(f"{GREEN}[OK]{NC}    {msg}")
 
 
 def warn(msg: str) -> None:
+    """Print a warning message in yellow."""
     print(f"{YELLOW}[WARN]{NC}  {msg}")
 
 
 def fail(msg: str) -> None:
+    """Print an error message in red and mark the run as failed."""
     global exit_code
     print(f"{RED}[FAIL]{NC}  {msg}")
     exit_code = 1
 
 
 def run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
+    """Run a command in the project root and return the completed process."""
     return subprocess.run(cmd, cwd=cwd or PROJECT_ROOT)
 
 
 def command_exists(cmd: str) -> bool:
+    """Return True when the command is available on the PATH."""
     return shutil.which(cmd) is not None
 
 
@@ -59,16 +65,14 @@ print("── 1. Environment Check ───────────────
 if not command_exists("uv"):
     fail("uv is not installed")
     sys.exit(1)
-ok(
-    f"uv -> {subprocess.run(['uv', '--version'], capture_output=True, text=True).stdout.strip()}"
-)
+uv_result = subprocess.run(["uv", "--version"], capture_output=True, text=True)
+ok(f"uv -> {uv_result.stdout.strip()}")
 
 if not command_exists("python3"):
     fail("python3 is not installed")
     sys.exit(1)
-ok(
-    f"python3 -> {subprocess.run(['python3', '--version'], capture_output=True, text=True).stdout.strip()}"
-)
+python_result = subprocess.run(["python3", "--version"], capture_output=True, text=True)
+ok(f"python3 -> {python_result.stdout.strip()}")
 
 print("\n── 2. Base Harness Files ─────────────────────────────")
 
@@ -126,7 +130,9 @@ try:
             has_invalid = True
         if a.get("type") and a["type"] not in valid_types:
             fail(
-                f"Invalid type in activity {a.get('id')}: {a.get('type')} (must be fix, feat, or chore)"
+                "Invalid type in activity "
+                f"{a.get('id')}: {a.get('type')} "
+                "(must be fix, feat, or chore)"
             )
             has_invalid = True
         if a.get("tasks") and isinstance(a["tasks"], list):
@@ -136,18 +142,21 @@ try:
                     has_invalid = True
                 if t.get("status") and t["status"] not in valid_task_statuses:
                     fail(
-                        f"Invalid task status in activity {a.get('id')}: {t.get('status')}"
+                        "Invalid task status in activity "
+                        f"{a.get('id')}: {t.get('status')}"
                     )
                     has_invalid = True
                 if t.get("agent") and t["agent"] not in valid_agents:
                     fail(
-                        f"Invalid task agent in activity {a.get('id')}: {t.get('agent')} (must be implementer or reviewer)"
+                        "Invalid task agent in activity "
+                        f"{a.get('id')}: {t.get('agent')} "
+                        "(must be implementer or reviewer)"
                     )
                     has_invalid = True
 
     if not has_invalid:
         ok(f"activities.json valid ({len(activities)} activities)")
-except Exception as e:  # noqa: BLE001
+except Exception as e:
     fail(f"activities.json invalid: {e}")
 
 print("\n── 4. Code Quality (ruff) ────────────────────────────")

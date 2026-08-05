@@ -19,7 +19,8 @@
 ### Code Quality
 - No `print()` or debug statements left behind
 - No TODOs without context
-- Type hints on all signatures
+- Type hints on all signatures (enforced by ruff `ANN`)
+- Docstrings on all public modules/classes/functions/methods (enforced by ruff `D`)
 - No unused imports or dead code
 
 ### Architecture Compliance
@@ -63,6 +64,7 @@ The reviewer agent must verify:
 - [ ] Providers self-registered in their `__init__.py`
 - [ ] Errors mapped to typed exceptions; nothing swallowed silently
 - [ ] No `print()`, TODOs without context, unused imports
+- [ ] Type hints on every signature and docstrings on public modules/classes/functions/methods (`uv run ruff check .` enforces this)
 - [ ] Pydantic models used for request/response; `response_model` set
 - [ ] Template metadata updated for new templates
 - [ ] No hardcoded branding in templates

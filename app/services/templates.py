@@ -1,3 +1,5 @@
+"""Jinja2 template rendering and metadata for Amail emails."""
+
 from pathlib import Path
 from typing import Any
 
@@ -97,6 +99,7 @@ TEMPLATE_METADATA: dict[str, dict[str, Any]] = {
 
 
 def build_base_context(data: dict[str, Any]) -> dict[str, Any]:
+    """Extract base layout variables from data and merge the remainder."""
     return {
         "brand_name": data.pop("brand_name", ""),
         "brand_color": data.pop("brand_color", "#1a73e8"),
@@ -108,12 +111,14 @@ def build_base_context(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def render_template(template_name: str, data: dict[str, Any]) -> str:
+    """Render a named template with the given data and return the HTML."""
     template = env.get_template(f"{template_name}.html")
     context = build_base_context(data.copy())
     return template.render(**context)
 
 
 def get_templates() -> dict[str, dict[str, Any]]:
+    """Return template metadata keyed by template name."""
     return {
         name: {"description": info["description"], "variables": info["variables"]}
         for name, info in TEMPLATE_METADATA.items()

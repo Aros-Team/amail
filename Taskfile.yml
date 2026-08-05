@@ -1,0 +1,37 @@
+version: "3"
+
+vars:
+  IMG: amail:latest
+
+tasks:
+  run:
+    desc: Levanta el servidor FastAPI con reload
+    cmds:
+      - uv run fastapi dev
+
+  test:
+    desc: Ejecuta pytest
+    cmds:
+      - uv run pytest
+
+  format:
+    desc: Verifica lint y formato con ruff (sin modificar)
+    cmds:
+      - uv run ruff check .
+      - uv run ruff format --check .
+
+  format:fix:
+    desc: Formatea el codigo con ruff
+    cmds:
+      - uv run ruff format .
+
+  clean:
+    desc: Limpia caches y pycache
+    cmds:
+      - find . -type d -name __pycache__ -prune -exec rm -rf {} +
+      - rm -rf .ruff_cache .pytest_cache
+
+  build:
+    desc: Construye la imagen Docker
+    cmds:
+      - docker build -t {{.IMG}} .

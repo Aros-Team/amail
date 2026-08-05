@@ -9,8 +9,16 @@
 - **Python 3.11+**, formatted and linted with `ruff`.
 - Run `uv run ruff check .` — all checks must pass.
 - Run `uv run ruff format .` before committing.
-- Line length: 120 (ruff default `line-length` unless overridden).
-- **Type hints on every function/method signature** (`from __future__ import annotations` where needed).
+- Line length: 88 (ruff default `line-length`).
+- **Type hints are mandatory** on every function/method signature, including
+  parameters and return types (`from __future__ import annotations` where
+  needed). Enforced by ruff rule group `ANN` — a missing annotation fails lint.
+- **Docstrings are mandatory** for every public module, class, function, and
+  method (excluding magic methods and `__init__`). One-line docstring in
+  imperative mood, capitalized, ending with a period. Enforced by ruff rule
+  group `D`.
+- `typing.Any` is discouraged: type the concrete contract (e.g. `EmailSender`)
+  instead. `self`/`cls` do not need annotations.
 - No `print()` for debugging — use the structured logger (`get_logger(__name__)`).
 - No TODOs without context.
 - No dead code, unused imports, or unused parameters.

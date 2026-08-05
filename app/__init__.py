@@ -1,0 +1,1 @@
+"""Amail email service package."""

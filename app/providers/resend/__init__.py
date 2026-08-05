@@ -1,3 +1,5 @@
+"""Resend provider package that self-registers the provider."""
+
 from app.providers import register
 from app.providers.resend.provider import ResendProvider
 

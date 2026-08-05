@@ -1,5 +1,8 @@
+"""Email messaging API routes for the Amail service."""
+
 import asyncio
 import json
+from typing import Any
 
 import resend
 from fastapi import APIRouter, HTTPException, Request
@@ -34,7 +37,8 @@ router = APIRouter(prefix="/api/v1", tags=["messages"])
     description="Returns available templates with their variable metadata.",
     responses={200: {"description": "Templates list"}},
 )
-def list_templates():
+def list_templates() -> TemplatesResponse:
+    """List available email templates with their variable metadata."""
     templates = get_templates()
     return TemplatesResponse(
         templates=[
@@ -50,27 +54,33 @@ def list_templates():
     "/templates/render",
     response_model=RenderResponse,
     summary="Render a template",
-    description="Renders a template with the given data and returns the HTML. Useful for the template preview tool.",
+    description=(
+        "Renders a template with the given data and returns the HTML. "
+        "Useful for the template preview tool."
+    ),
     responses={
         200: {"description": "Rendered HTML"},
         404: {"model": ErrorDetail, "description": "Template not found"},
     },
 )
-def render_template_endpoint(request: RenderRequest):
+def render_template_endpoint(request: RenderRequest) -> RenderResponse:
+    """Render a template with the given data and return the HTML."""
     try:
         html = render_template(request.template, request.data)
         return RenderResponse(html=html)
-    except TemplateNotFound:
+    except TemplateNotFound as e:
         raise HTTPException(
             status_code=404, detail=f"Template '{request.template}' not found"
-        )
+        ) from e
 
 
 @router.post(
     "/send",
     response_model=EmailResponse,
     summary="Send a single email",
-    description="Send an email using a named template. Accepts a single recipient or a list.",
+    description=(
+        "Send an email using a named template. Accepts a single recipient " "or a list."
+    ),
     responses={
         200: {"description": "Email sent"},
         400: {
@@ -80,7 +90,8 @@ def render_template_endpoint(request: RenderRequest):
         500: {"model": ErrorDetail, "description": "Internal error"},
     },
 )
-def send_email(request: EmailRequest):
+def send_email(request: EmailRequest) -> EmailResponse:
+    """Send a single email using a named template."""
     service = EmailService()
 
     to_list = [request.to] if isinstance(request.to, str) else request.to
@@ -96,12 +107,16 @@ def send_email(request: EmailRequest):
     "/send/batch",
     response_model=BatchReport,
     summary="Send multiple emails (batch)",
-    description="Send multiple emails with best-effort semantics. If any fail and ADMIN_EMAIL is configured, a failure report is forwarded.",
+    description=(
+        "Send multiple emails with best-effort semantics. If any fail and "
+        "ADMIN_EMAIL is configured, a failure report is forwarded."
+    ),
     responses={
         200: {"description": "Batch complete with per-email results"},
     },
 )
-def send_batch(request: BatchEmailRequest):
+def send_batch(request: BatchEmailRequest) -> BatchReport:
+    """Send multiple emails and return a per-email batch report."""
     service = EmailService()
     log.info("batch_send_request", count=len(request.emails), parallel=request.parallel)
     return service.send_batch(request)
@@ -110,13 +125,17 @@ def send_batch(request: BatchEmailRequest):
 @router.post(
     "/receive",
     summary="Receive email webhook from Resend",
-    description="Resend webhook receiver. Verifies Svix signature, processes email.received events, forwards to configured target.",
+    description=(
+        "Resend webhook receiver. Verifies Svix signature, processes "
+        "email.received events, forwards to configured target."
+    ),
     responses={
         200: {"description": "Webhook processed"},
         400: {"description": "Missing headers or invalid payload"},
     },
 )
-async def receive_email(request: Request):
+async def receive_email(request: Request) -> dict[str, Any]:
+    """Process an incoming Resend webhook with signature verification."""
     settings = get_settings()
 
     svix_id = request.headers.get("svix-id")
@@ -138,15 +157,15 @@ async def receive_email(request: Request):
             },
             secret=settings.resend_webhook_secret,
         )
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=400, detail="Webhook signature verification failed"
-        )
+        ) from e
 
     try:
         payload_dict = json.loads(verified) if isinstance(verified, str) else verified
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid webhook payload")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid webhook payload") from e
 
     receiver = get_receiver()
     if receiver is None:

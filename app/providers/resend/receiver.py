@@ -1,3 +1,5 @@
+"""Inbound email handling for the Resend provider."""
+
 import time
 from typing import Any
 
@@ -13,11 +15,14 @@ SET_FORWARD_PREFIX = "SET_FORWARD:"
 
 
 class ResendReceiver:
+    """Receive Resend webhooks and forward matching emails."""
+
     def __init__(self, sender: ResendSender | None = None) -> None:
         self.settings = get_settings()
         self.sender = sender or ResendSender()
 
     def receive(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Process an inbound webhook payload and return the outcome."""
         event_type = payload.get("type")
 
         if event_type != "email.received":
@@ -79,13 +84,10 @@ class ResendReceiver:
                             email_id=email_id,
                         )
                         return content
-                    else:
-                        log.warning(
-                            "email_content_missing_fields",
-                            available_keys=list(email_info.keys())
-                            if email_info
-                            else [],
-                        )
+                    log.warning(
+                        "email_content_missing_fields",
+                        available_keys=list(email_info.keys()) if email_info else [],
+                    )
             except Exception as e:
                 log.error(
                     "email_content_fetch_exception", error=str(e), email_id=email_id

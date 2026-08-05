@@ -1,6 +1,8 @@
+"""Structured logging configuration using structlog."""
+
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import structlog
@@ -12,6 +14,7 @@ from app.config import get_settings
 def add_request_id(
     logger: WrappedLogger, method_name: str, event_dict: EventDict
 ) -> EventDict:
+    """Attach a unique request id to the event dict when absent."""
     if "request_id" not in event_dict:
         event_dict["request_id"] = str(uuid4())
     return event_dict
@@ -20,13 +23,15 @@ def add_request_id(
 def add_timestamp(
     logger: WrappedLogger, method_name: str, event_dict: EventDict
 ) -> EventDict:
-    event_dict["timestamp"] = datetime.now(timezone.utc).isoformat()
+    """Attach the current UTC timestamp to the event dict."""
+    event_dict["timestamp"] = datetime.now(UTC).isoformat()
     return event_dict
 
 
 def add_app_context(
     logger: WrappedLogger, method_name: str, event_dict: EventDict
 ) -> EventDict:
+    """Attach environment, service version and name to the event dict."""
     settings = get_settings()
     event_dict["environment"] = settings.environment
     event_dict["service_version"] = settings.version
@@ -34,9 +39,10 @@ def add_app_context(
     return event_dict
 
 
-def HumanReadableRenderer(
+def human_readable_renderer(
     logger: WrappedLogger, method_name: str, event_dict: EventDict
 ) -> str:
+    """Render the event dict as a human-readable log line."""
     event = event_dict.get("event", "")
     level = event_dict.get("level", "info")
 
@@ -49,7 +55,7 @@ def HumanReadableRenderer(
     error_repr = event_dict.get("error_repr", "")
     request_id = event_dict.get("request_id", "")
 
-    timestamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    timestamp = datetime.now(UTC).strftime("%H:%M:%S")
 
     parts = [f"[{timestamp}]"]
 
@@ -92,18 +98,22 @@ def HumanReadableRenderer(
         parts.append(msg)
 
     elif event == "email_send_with_retry_start":
-        parts.append(
-            f"Starting email send to {to} with {event_dict.get('max_attempts', 3)} attempts [req: {request_id[:8]}...]"
-            if request_id
-            else f"Starting email send to {to} with {event_dict.get('max_attempts', 3)} attempts"
-        )
+        attempts = event_dict.get("max_attempts", 3)
+        msg = f"Starting email send to {to} with {attempts} attempts"
+        if request_id:
+            msg += f" [req: {request_id[:8]}...]"
+        parts.append(msg)
 
     elif event == "email_send_attempt":
         parts.append(f"Email send attempt {event_dict.get('attempt', 0)} to {to}")
 
     elif event == "email_send_retry":
+        attempt = event_dict.get("attempt", 0)
+        max_attempts = event_dict.get("max_attempts", 3)
+        wait_seconds = event_dict.get("wait_seconds", 0)
         parts.append(
-            f"Retrying email to {to} (attempt {event_dict.get('attempt', 0)}/{event_dict.get('max_attempts', 3)}) after {event_dict.get('wait_seconds', 0):.1f}s"
+            f"Retrying email to {to} (attempt {attempt}/{max_attempts}) "
+            f"after {wait_seconds:.1f}s"
         )
 
     elif event == "email_send_with_retry_success":
@@ -154,6 +164,7 @@ def HumanReadableRenderer(
 
 
 def configure_logging() -> None:
+    """Configure stdlib logging and structlog for the application."""
     settings = get_settings()
 
     logging.basicConfig(
@@ -171,7 +182,7 @@ def configure_logging() -> None:
             structlog.processors.add_log_level,
             structlog.processors.StackInfoRenderer(),
             structlog.dev.set_exc_info,
-            HumanReadableRenderer,
+            human_readable_renderer,
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
             getattr(logging, settings.log_level.upper(), logging.INFO)
@@ -183,4 +194,5 @@ def configure_logging() -> None:
 
 
 def get_logger(name: str) -> structlog.BoundLogger:
+    """Return a structlog bound logger for the given name."""
     return structlog.get_logger(name)

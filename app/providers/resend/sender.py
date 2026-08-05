@@ -1,3 +1,5 @@
+"""Outbound email sending through the Resend API."""
+
 import time
 import uuid
 from typing import Any
@@ -23,6 +25,8 @@ log = get_logger(__name__)
 
 
 class ResendSender:
+    """Send emails through Resend, mapping SDK failures to typed errors."""
+
     RETRYABLE_ERRORS = (429, 500, 502, 503, 504)
     NON_RETRYABLE_ERRORS = (400, 401, 403, 404)
 
@@ -39,6 +43,7 @@ class ResendSender:
         options: dict[str, Any] | None = None,
         request_id: str | None = None,
     ) -> dict[str, Any]:
+        """Send an email and return its id and request id."""
         options = options or {}
         from_email = options.get("from_email") or f"noreply@{self.settings.domain}"
         req_id = request_id or str(uuid.uuid4())
@@ -104,13 +109,12 @@ class ResendSender:
             if error_type == "rate_limit":
                 raise ResendRateLimitError(
                     **error_kwargs, reset_at=error_info.get("reset_at")
-                )
-            elif error_type == "server_error":
-                raise ResendServerError(**error_kwargs)
-            elif error_type == "connection_error":
-                raise ResendConnectionError(**error_kwargs)
-            else:
-                raise ResendAPIError(**error_kwargs, error_type=error_type)
+                ) from e
+            if error_type == "server_error":
+                raise ResendServerError(**error_kwargs) from e
+            if error_type == "connection_error":
+                raise ResendConnectionError(**error_kwargs) from e
+            raise ResendAPIError(**error_kwargs, error_type=error_type) from e
 
     def _parse_error(self, e: Exception) -> dict[str, Any]:
         error_msg = str(e)
@@ -225,6 +229,7 @@ class ResendSender:
         options: dict[str, Any] | None = None,
         max_attempts: int = 3,
     ) -> dict[str, Any]:
+        """Send an email, retrying transient failures up to max_attempts."""
         request_id = str(uuid.uuid4())
 
         log.info(

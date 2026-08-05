@@ -1,12 +1,14 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from app.config import Settings
 from app.providers.resend.receiver import ResendReceiver
 
 
 @pytest.fixture
-def mock_settings():
+def mock_settings() -> MagicMock:
+    """Create a mocked Settings object with known values."""
     settings = MagicMock(spec=Settings)
     settings.resend_api_key = "re_test_key"
     settings.domain = "test.example.com"
@@ -22,29 +24,30 @@ def mock_settings():
 
 
 @pytest.fixture
-def mock_sender():
+def mock_sender() -> MagicMock:
+    """Create a mocked sender whose send returns a fixed id."""
     sender = MagicMock()
     sender.send = MagicMock(return_value={"id": "sent_123"})
     return sender
 
 
 @pytest.fixture
-def receiver(mock_settings, mock_sender):
-    with patch(
-        "app.providers.resend.receiver.get_settings", return_value=mock_settings
+def receiver(mock_settings: MagicMock, mock_sender: MagicMock) -> ResendReceiver:
+    """Build a ResendReceiver with patched settings and sender."""
+    with (
+        patch("app.providers.resend.receiver.get_settings", return_value=mock_settings),
+        patch("app.providers.resend.receiver.ResendSender", return_value=mock_sender),
     ):
-        with patch(
-            "app.providers.resend.receiver.ResendSender", return_value=mock_sender
-        ):
-            r = ResendReceiver()
-            r.settings = mock_settings
-            r.sender = mock_sender
-            return r
+        r = ResendReceiver()
+        r.settings = mock_settings
+        r.sender = mock_sender
+        return r
 
 
 def test_resend_receiver_handles_email_received_event(
-    receiver, mock_settings, mock_sender
-):
+    receiver: ResendReceiver, mock_settings: MagicMock, mock_sender: MagicMock
+) -> None:
+    """Verify a received email is forwarded with the expected subject."""
     payload = {
         "type": "email.received",
         "data": {
@@ -67,7 +70,10 @@ def test_resend_receiver_handles_email_received_event(
     assert call_args.kwargs["subject"] == "FWD: Test Email (from: sender@example.com)"
 
 
-def test_resend_receiver_ignores_non_email_received_events(receiver, mock_sender):
+def test_resend_receiver_ignores_non_email_received_events(
+    receiver: ResendReceiver, mock_sender: MagicMock
+) -> None:
+    """Verify unsupported event types are ignored."""
     payload = {
         "type": "email.sent",
         "data": {},
@@ -80,7 +86,10 @@ def test_resend_receiver_ignores_non_email_received_events(receiver, mock_sender
     mock_sender.send.assert_not_called()
 
 
-def test_resend_receiver_ignores_emails_to_non_allowed_addresses(receiver, mock_sender):
+def test_resend_receiver_ignores_emails_to_non_allowed_addresses(
+    receiver: ResendReceiver, mock_sender: MagicMock
+) -> None:
+    """Verify emails to non-allowed addresses are ignored."""
     payload = {
         "type": "email.received",
         "data": {
@@ -99,8 +108,9 @@ def test_resend_receiver_ignores_emails_to_non_allowed_addresses(receiver, mock_
 
 
 def test_forward_to_email_can_be_updated_via_email_command(
-    receiver, mock_settings, mock_sender
-):
+    receiver: ResendReceiver, mock_settings: MagicMock, mock_sender: MagicMock
+) -> None:
+    """Verify a SET_FORWARD command updates the forward target."""
     payload = {
         "type": "email.received",
         "data": {
@@ -122,8 +132,9 @@ def test_forward_to_email_can_be_updated_via_email_command(
 
 
 def test_set_forward_without_email_is_forwarded_as_normal_email(
-    receiver, mock_settings, mock_sender
-):
+    receiver: ResendReceiver, mock_settings: MagicMock, mock_sender: MagicMock
+) -> None:
+    """Verify a SET_FORWARD without an address is forwarded as normal email."""
     payload = {
         "type": "email.received",
         "data": {
@@ -144,8 +155,9 @@ def test_set_forward_without_email_is_forwarded_as_normal_email(
 
 
 def test_resend_receiver_uses_forward_to_email_property(
-    receiver, mock_settings, mock_sender
-):
+    receiver: ResendReceiver, mock_settings: MagicMock, mock_sender: MagicMock
+) -> None:
+    """Verify forwarding uses the effective forward-to email property."""
     mock_settings.effective_forward_to_email = "override@example.com"
 
     payload = {

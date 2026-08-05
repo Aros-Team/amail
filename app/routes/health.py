@@ -1,5 +1,7 @@
+"""Health check endpoints for the Amail API."""
+
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import resend
 from fastapi import APIRouter, HTTPException
@@ -24,10 +26,11 @@ TEST_EMAIL = "test@resend.dev"
     summary="Health check",
     description="Simple liveness probe.",
 )
-def health_check():
+def health_check() -> HealthResponse:
+    """Return a simple liveness probe response."""
     return HealthResponse(
         status="healthy",
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
     )
 
 
@@ -35,9 +38,13 @@ def health_check():
     "/health/email",
     response_model=EmailHealthResponse,
     summary="Email provider health",
-    description="Tests connectivity to the email provider by sending a test email to resend.dev.",
+    description=(
+        "Tests connectivity to the email provider by sending a test email "
+        "to resend.dev."
+    ),
 )
-def email_health_check():
+def email_health_check() -> EmailHealthResponse:
+    """Check email provider connectivity by sending a test email."""
     settings = get_settings()
     resend.api_key = settings.resend_api_key
 
@@ -69,7 +76,7 @@ def email_health_check():
             status_code=200,
             resend_id=resend_id,
             test_email=TEST_EMAIL,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
     except Exception as e:
@@ -88,9 +95,9 @@ def email_health_check():
                 status="unhealthy",
                 latency_ms=round(duration_ms, 2),
                 status_code=status_code,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             ).model_dump(),
-        )
+        ) from e
 
 
 @router.get(
@@ -99,7 +106,8 @@ def email_health_check():
     summary="Webhook configuration health",
     description="Checks whether the webhook secret is configured.",
 )
-def webhook_health_check():
+def webhook_health_check() -> WebhookHealthResponse:
+    """Check whether the webhook secret is configured."""
     settings = get_settings()
     webhook_configured = bool(settings.resend_webhook_secret)
 
@@ -108,5 +116,5 @@ def webhook_health_check():
     return WebhookHealthResponse(
         status="configured" if webhook_configured else "missing_secret",
         webhook_secret_configured=webhook_configured,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
     )

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Bootstrap the harness tracking structure for the amail project.
+"""
+Bootstrap the harness tracking structure for the amail project.
 
 Run with: uv run python scripts/build_harness.py [project_name] [description]
 
@@ -48,6 +49,7 @@ HISTORY_MD_TEMPLATE = """# Session History
 
 
 def init_project(project_name: str, description: str) -> None:
+    """Create the harness tracking files if they do not already exist."""
     print(f"Initializing project structure: {project_name}")
 
     progress_dir = PROJECT_ROOT / "progress"
