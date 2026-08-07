@@ -1,0 +1,30 @@
+# Amail inbound routing contract.
+#
+# Copy this file to app/config/routes.yaml for local development, OR paste its
+# full content into the AMAIL_ROUTES environment variable / secret for
+# serverless deployments. AMAIL_ROUTES_FILE may instead point to a YAML file.
+#
+# Source precedence: AMAIL_ROUTES (text) -> AMAIL_ROUTES_FILE (path) ->
+# app/config/routes.yaml (dev file).
+
+# Domain used as the default sender (noreply@{domain}) and by /health/email.
+domain: example.com
+
+# Each inbound recipient accepts email and maps it to one or more forward
+# targets. Email to an address not in this list is ignored.
+inbound:
+  # Single forward target.
+  - to: support@example.com
+    forwards:
+      - ops@team.example.com
+
+  # Multiple forward targets (email is sent to the union).
+  - to: team@example.com
+    forwards:
+      - ops@team.example.com
+      - backup.team@example.com
+
+# Optional fallback used when no inbound rule matches a received email.
+# Leave `forwards` empty to ignore un-routed mail.
+fallback:
+  forwards: []

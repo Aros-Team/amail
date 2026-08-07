@@ -95,21 +95,44 @@ Boundary rules:
 
 ## 5. Configuration Pattern
 
-All configuration is a single Pydantic `Settings(BaseSettings)` class, driven by
-env vars / `.env`, accessed through a cached accessor:
+Configuration lives in the `app/config/` package and has two distinct layers:
 
-```python
-from app.config import get_settings
+1. **Environment settings** — a single Pydantic `Settings(BaseSettings)` class
+   (`app/config/settings.py`), driven by env vars / `.env`, accessed through a
+   cached accessor. Holds provider keys, provider selector, log level, etc.
 
-settings = get_settings()
-settings.domain, settings.email_provider, ...
-```
+   ```python
+   from app.config import get_settings
 
-- No `os.getenv` scattered through the code — settings are always read from the
-  `Settings` model.
-- Derived values are computed properties (e.g. `webhook_allowed_emails`).
-- Runtime-mutable state (the `SET_FORWARD:` override) is stored on the settings
-  instance; note it is per-process and resets on restart.
+   settings = get_settings()
+   settings.resend_api_key, settings.email_provider, ...
+   ```
+
+2. **Routing contract** — a declarative YAML contract (`app/config/routing.py`)
+   describing the email `domain`, accepted inbound addresses, and their forward
+   targets, plus an optional fallback. Loaded and validated once per process
+   (cached), with source precedence:
+
+   - `AMAIL_ROUTES` — the YAML content as an env var / secret.
+   - `AMAIL_ROUTES_FILE` — path to a YAML file.
+   - `app/config/routes.yaml` — local development file (gitignored).
+
+   ```python
+   from app.config.routing import load_routing_config
+
+   routing = load_routing_config()          # RoutingConfig | None
+   routing.domain, routing.accepted_recipients, routing.resolve(recipients)
+   ```
+
+Rules:
+- No `os.getenv` scattered through the code — values come from `Settings` or the
+  routing contract loader.
+- The `domain` lives in the routing contract (not an env var); it drives the
+  default sender (`noreply@{domain}`) and `/health/email`.
+- If the contract is absent or invalid, the loader logs an error at startup and
+  returns `None`; health exposes this as "unhealthy" without crashing the app.
+- Behavioral overrides (previously the `SET_FORWARD:` command) have been removed;
+  forwarding is now fully declarative via the contract.
 
 ---
 
@@ -154,13 +177,15 @@ report via the active provider's sender.
   so OpenAPI is complete.
 - Incoming webhook: verify the Svix signature over the raw body first, then
   process the event; reject with 400 on any verification/parse failure.
-- The receiver handles `email.received` events: filters by allowed addresses,
-  fetches content (with bounded retry), forwards, and supports the
-  `SET_FORWARD:` subject command.
+- The receiver handles `email.received` events: filters by the accepted
+  recipients from the routing contract, fetches content (with bounded retry),
+  and forwards to the resolved the contract (rule match or fallback).
 - Health endpoints never require provider credentials:
   - `/health` — liveness
-  - `/health/email` — provider connectivity (sends to `test@resend.dev`)
-  - `/health/webhook` — webhook secret configured
+  - `/health/email` — provider connectivity (sends to `test@resend.dev`);
+    503 if no `domain` in the routing contract
+  - `/health/webhook` — webhook secret configured; `routes_loaded: false` /
+    `missing_routes` when no routing contract is present
 
 ---
 

@@ -5,7 +5,11 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "app/config.py"
+          "path": "app/config/settings.py"
+        },
+        {
+          "type": "generic",
+          "path": "main.py"
         }
       ]
     }

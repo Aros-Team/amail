@@ -7,6 +7,7 @@ import resend
 from fastapi import APIRouter, HTTPException
 
 from app.config import get_settings
+from app.config.routing import load_routing_config
 from app.logging_config import get_logger
 from app.models.schemas import (
     EmailHealthResponse,
@@ -48,13 +49,35 @@ def email_health_check() -> EmailHealthResponse:
     settings = get_settings()
     resend.api_key = settings.resend_api_key
 
-    log.info("email_health_check_start", domain=settings.domain, test_email=TEST_EMAIL)
+    routing = load_routing_config()
+    domain = routing.domain if routing else ""
+
+    if not domain:
+        log.warning(
+            "email_health_check_missing_domain",
+            hint="set the domain in the routing contract (AMAIL_ROUTES)",
+        )
+        raise HTTPException(
+            status_code=503,
+            detail=EmailHealthResponse(
+                status="unhealthy",
+                status_code=503,
+                message=(
+                    "No email domain configured - set the domain in your routing "
+                    "contract (AMAIL_ROUTES / AMAIL_ROUTES_FILE) to run email "
+                    "health checks"
+                ),
+                timestamp=datetime.now(UTC).isoformat(),
+            ).model_dump(),
+        )
+
+    log.info("email_health_check_start", domain=domain, test_email=TEST_EMAIL)
 
     start_time = time.perf_counter()
 
     try:
         params = {
-            "from": f"test@{settings.domain}",
+            "from": f"test@{domain}",
             "to": [TEST_EMAIL],
             "subject": "Health Check - Amail",
             "html": "<p>Health check email</p>",
@@ -95,6 +118,7 @@ def email_health_check() -> EmailHealthResponse:
                 status="unhealthy",
                 latency_ms=round(duration_ms, 2),
                 status_code=status_code,
+                message=str(e),
                 timestamp=datetime.now(UTC).isoformat(),
             ).model_dump(),
         ) from e
@@ -110,11 +134,24 @@ def webhook_health_check() -> WebhookHealthResponse:
     """Check whether the webhook secret is configured."""
     settings = get_settings()
     webhook_configured = bool(settings.resend_webhook_secret)
+    routes_loaded = load_routing_config() is not None
 
-    log.info("webhook_health_check", webhook_configured=webhook_configured)
+    if webhook_configured and routes_loaded:
+        status = "configured"
+    elif not webhook_configured:
+        status = "missing_secret"
+    else:
+        status = "missing_routes"
+
+    log.info(
+        "webhook_health_check",
+        webhook_configured=webhook_configured,
+        routes_loaded=routes_loaded,
+    )
 
     return WebhookHealthResponse(
-        status="configured" if webhook_configured else "missing_secret",
+        status=status,
         webhook_secret_configured=webhook_configured,
+        routes_loaded=routes_loaded,
         timestamp=datetime.now(UTC).isoformat(),
     )

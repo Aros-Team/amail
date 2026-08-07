@@ -1,4 +1,5 @@
 .env
+app/config/routes.yaml
 **/__pycache__
 .ruff_cache
 .pytest_cache

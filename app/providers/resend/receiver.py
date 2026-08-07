@@ -6,12 +6,11 @@ from typing import Any
 import resend
 
 from app.config import get_settings
+from app.config.routing import load_routing_config
 from app.logging_config import get_logger
 from app.providers.resend.sender import ResendSender
 
 log = get_logger(__name__)
-
-SET_FORWARD_PREFIX = "SET_FORWARD:"
 
 
 class ResendReceiver:
@@ -34,21 +33,13 @@ class ResendReceiver:
         to_emails = email_data.get("to", [])
         email_id = email_data.get("email_id", "")
 
-        if subject.startswith(SET_FORWARD_PREFIX):
-            new_email = subject[len(SET_FORWARD_PREFIX) :].strip()
-            if new_email:
-                self.settings.set_forward_to_email(new_email)
-                log.info(
-                    "forward_email_command_executed",
-                    new_email=new_email,
-                    email_id=email_id,
-                )
-                return {"status": "forward_target_updated", "new_email": new_email}
+        routing = load_routing_config()
+        if routing is None:
+            return {"status": "error", "reason": "routing config missing"}
 
-        allowed_emails = self.settings.webhook_allowed_emails
-
-        if not any(email in allowed_emails for email in to_emails):
-            return {"status": "ignored", "reason": "email not to allowed address"}
+        forwards = routing.resolve(to_emails)
+        if not forwards:
+            return {"status": "ignored", "reason": "no forward targets"}
 
         log.info("email_content_fetch_start", email_id=email_id)
         html = self._get_email_content(email_id)
@@ -58,11 +49,11 @@ class ResendReceiver:
             html = f"<p>Forwarded email from: {from_email}</p><p>Subject: {subject}</p>"
 
         self.sender.send(
-            to=[self.settings.effective_forward_to_email],
+            to=forwards,
             subject=f"FWD: {subject} (from: {from_email})",
             html=html,
         )
-        return {"status": "forwarded"}
+        return {"status": "forwarded", "forwarded_to": forwards}
 
     def _get_email_content(self, email_id: str) -> str | None:
         for attempt in range(3):

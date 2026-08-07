@@ -106,6 +106,7 @@ class EmailHealthResponse(BaseModel):
     status_code: int | None = None
     resend_id: str | None = None
     test_email: str | None = None
+    message: str | None = None
     timestamp: str
 
 
@@ -114,4 +115,5 @@ class WebhookHealthResponse(BaseModel):
 
     status: str
     webhook_secret_configured: bool
+    routes_loaded: bool
     timestamp: str

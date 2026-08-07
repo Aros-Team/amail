@@ -33,7 +33,7 @@
 | Package dir | `snake_case/` | `app/providers/resend/` |
 | Class | `PascalCase` | `EmailService`, `ResendSender`, `EmailProvider` |
 | Function/method | `snake_case` | `send_with_retry`, `build_failure_report` |
-| Constant | `UPPER_SNAKE_CASE` | `TEMPLATES_DIR`, `SET_FORWARD_PREFIX` |
+| Constant | `UPPER_SNAKE_CASE` | `TEMPLATES_DIR`, `ENV_ROUTES` |
 | Pydantic model | `PascalCase` | `EmailRequest`, `BatchReport` |
 
 No `Service`/`Manager`/`Provider` suffixes on class names unless they describe a
@@ -52,6 +52,11 @@ real role (provider classes keep the suffix by design: `ResendProvider`).
 - **Models** live in `app/models/` (`schemas.py` for request/response,
   `errors.py` for error bodies).
 - **Contracts** (Protocols) live in `app/contracts/`.
+- **Config** lives in the `app/config/` package: `settings.py` (env-driven
+  `Settings`) and `routing.py` (the declarative YAML routing contract + loader).
+  Inbound routing is driven by the contract (`AMAIL_ROUTES` / `AMAIL_ROUTES_FILE`
+  / `app/config/routes.yaml`), never by per-recipient env vars. The `domain`
+  belongs in the contract, not in an env var.
 
 ---
 

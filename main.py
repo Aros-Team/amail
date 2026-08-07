@@ -15,7 +15,7 @@ app = FastAPI(
         "Email microservice with FastAPI and Resend. "
         "Send, receive, forward, and template emails."
     ),
-    version="1.0.0",
+    version="1.0.0",  # x-release-please-version
 )
 
 app.include_router(health.router)

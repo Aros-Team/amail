@@ -13,6 +13,7 @@ from tenacity import (
 )
 
 from app.config import get_settings
+from app.config.routing import load_routing_config
 from app.logging_config import get_logger
 from app.providers.resend.errors import (
     ResendAPIError,
@@ -45,7 +46,10 @@ class ResendSender:
     ) -> dict[str, Any]:
         """Send an email and return its id and request id."""
         options = options or {}
-        from_email = options.get("from_email") or f"noreply@{self.settings.domain}"
+        routing = load_routing_config()
+        from_email = options.get("from_email") or (
+            f"noreply@{routing.domain}" if routing and routing.domain else ""
+        )
         req_id = request_id or str(uuid.uuid4())
 
         log.info(
