@@ -148,14 +148,16 @@ async def receive_email(request: Request) -> dict[str, Any]:
     raw_body = await request.body()
 
     try:
-        verified = resend.webhooks.verify(
-            payload=raw_body,
-            headers={
-                "id": svix_id,
-                "timestamp": svix_timestamp,
-                "signature": svix_signature,
-            },
-            secret=settings.resend_webhook_secret,
+        resend.Webhooks.verify(
+            {
+                "payload": raw_body.decode("utf-8"),
+                "headers": {
+                    "id": svix_id,
+                    "timestamp": svix_timestamp,
+                    "signature": svix_signature,
+                },
+                "webhook_secret": settings.resend_webhook_secret,
+            }
         )
     except Exception as e:
         raise HTTPException(
@@ -163,7 +165,7 @@ async def receive_email(request: Request) -> dict[str, Any]:
         ) from e
 
     try:
-        payload_dict = json.loads(verified) if isinstance(verified, str) else verified
+        payload_dict = json.loads(raw_body)
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid webhook payload") from e
 

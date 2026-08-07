@@ -9,6 +9,19 @@ tasks:
     cmds:
       - uv run fastapi dev
 
+  run:cloud:
+    desc: >
+      Levanta el servidor FastAPI en segundo plano y expone el puerto con un
+      tunnel publico via npx nport (Cloudflare), util para probar webhooks.
+      Uso: `task run:cloud` o `task run:cloud NSUB=amail-webhook`.
+    vars:
+      PORT: "8000"
+      NSUB: ""
+    cmds:
+      - 'uv run fastapi dev --port {{.PORT}} > /tmp/amail-cloud.log 2>&1 &'
+      - sleep 4
+      - 'npx --yes nport {{.PORT}} {{if .NSUB}}-s {{.NSUB}}{{end}}'
+
   test:
     desc: Ejecuta pytest
     cmds:
