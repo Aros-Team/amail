@@ -4,7 +4,7 @@ pythonpath = ["."]
 
 [project]
 name = "amail"
-version = "1.0.0"
+version = "1.1.0"
 description = "Aros mail system"
 readme = "README.md"
 requires-python = ">=3.11"

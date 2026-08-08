@@ -3,6 +3,31 @@
 All notable changes to this project are documented in this file.
 Releases follow the service version reported by the API (`app.version`).
 
+## [1.1.0](https://github.com/Aros-Team/amail/compare/v1.0.0...v1.1.0) (2026-08-08)
+
+
+### Features
+
+* add monitoring, structured logging and health checks ([0e23b5c](https://github.com/Aros-Team/amail/commit/0e23b5c5389b306cc9c70f835fd8b55f48bd2259))
+* add release-please workflow with validation gate ([c451321](https://github.com/Aros-Team/amail/commit/c4513212761cd0714853920429ac2d594655ed24))
+* add template render endpoint with route tests ([7cf4c46](https://github.com/Aros-Team/amail/commit/7cf4c463678815f6b5592436418f2ece70360f3f))
+* add two_factor template and enhanced /api/templates endpoint ([d942a62](https://github.com/Aros-Team/amail/commit/d942a626c5fea83d8dec52aa2e6b92982946ee54))
+* **config:** declarative YAML inbound routing contract ([7edf254](https://github.com/Aros-Team/amail/commit/7edf254d51c261c1052e0d2d38d93ae6f42b176f))
+* improve Resend error logging and add connection error handling ([fd1c479](https://github.com/Aros-Team/amail/commit/fd1c4791df8d15531f36253740d332b18db9a2cd))
+* update templates; chore: add uv project manager. ([987a928](https://github.com/Aros-Team/amail/commit/987a928df96eb7abe7b10b964db9b35e75715fa0))
+
+
+### Bug Fixes
+
+* improve email receiving and sending ([dd001c5](https://github.com/Aros-Team/amail/commit/dd001c50defc53c12b19c3d098d44296cae3c586))
+* **webhook:** verify inbound signature with resend.Webhooks.verify ([b89ac7a](https://github.com/Aros-Team/amail/commit/b89ac7aba56814178c079d96d3bfa3fb94931b9f))
+
+
+### Documentation
+
+* fix section numbering in testing policy ([499ab5c](https://github.com/Aros-Team/amail/commit/499ab5c452bbe8f12d67123c984a6fdfc607c399))
+* update API docs and environment variables ([f686f58](https://github.com/Aros-Team/amail/commit/f686f5874703300620560fce61587c1742f6e5b2))
+
 ## [Unreleased]
 
 ### Added
