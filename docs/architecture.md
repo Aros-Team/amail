@@ -7,9 +7,9 @@
 ## 1. Project Overview
 
 Amail is a lightweight, self-hosted email microservice built with Python and
-FastAPI, using Resend as the default provider. It sends, receives, forwards,
-and templates emails through a simple REST API. Serverless-first: no databases,
-no storage, no vendor lock-in.
+FastAPI, using Resend as the default provider. It sends, receives, and forwards
+emails through a simple REST API. Serverless-first: no databases, no storage, no
+vendor lock-in.
 
 ---
 
@@ -20,8 +20,7 @@ Dependencies point one way only: **routes → services → providers**.
 | Layer | Responsibility | Imports from |
 |-------|---------------|--------------|
 | `routes/` | HTTP surface, request validation, response models | services, models |
-| `render/` | Template rendering seam: single swap point between engines | services/templates, models |
-| `services/` | Business logic: orchestration, rendering, reporting | providers, models |
+| `services/` | Business logic: orchestration, sending, reporting | providers, models |
 | `providers/` | External integrations (Resend/Mock), error mapping | contracts, config |
 | `contracts/` | Protocol definitions — what a provider must implement | typing only |
 
@@ -137,32 +136,24 @@ Rules:
 
 ---
 
-## 6. Template Rendering Pattern
+## 6. Email Content Pattern
 
-Email markup is produced through a rendering seam `render/` that isolates the
-engine behind one abstraction:
+Emails are sent as **plain text** by default. The `EmailRequest` schema carries a
+`body` field with the plain-text content, which `EmailService.send` forwards
+directly to the provider.
 
-- `render/__init__.py` exposes `get_renderer()` — the **single swap point**. It
-  currently returns `JinjaRenderer`, but any engine implementing the `Renderer`
-  ABC (`render(name, data) -> html`, `get_templates()`) can be returned here
-  without touching routes or services. Built to host a future Markdown engine.
-- `render/jinja.py` (`JinjaRenderer`) wraps the Jinja2 engine via
-  `services/templates.py` and maps `jinja2.TemplateNotFound` to the project
-  `TemplateNotFoundError`, so the engine's internal error never leaks past the
-  seam.
-- `services/templates.py` is the Jinja2 implementation detail (still consumed
-  by the seam and tests):
-  - `render_template(name, data)` → rendered HTML
-  - `build_base_context(data)` → extracts brand defaults (`brand_name`,
-    `brand_color`, `logo_url`, `support_email`, `lang`) before passing user data
-  - `get_templates()` → per-template metadata (description + variables)
-- Every template has an entry in `TEMPLATE_METADATA` so
-  `GET /api/v1/templates` stays accurate and the preview tool can auto-generate
-  forms from it.
-- Autoescaping is on for `html`/`xml`; the `custom` template opts in to raw HTML
-  via `| safe`.
-- No hardcoded branding — text/colors/images come from variables with defaults.
-- Bilingual via `lang` (`es`/`en`, default `es`); inline CSS only.
+The sender contract (`EmailSender`) accepts both `html` and `text` as optional
+keyword arguments:
+
+- `EmailService.send` passes the plain-text `body` as `text`.
+- The batch failure report (`services/batch_reporter.py`) and the health-check
+  email (`/health/email`) still send HTML by passing `html=...`.
+- The Resend sender only includes `params["html"]` / `params["text"]` when the
+  respective argument is present, so an HTML-only or text-only payload is sent
+  as-is.
+
+The template subsystem (Jinja2 templates, the `render/` seam, and the
+`GET/POST /templates` endpoints) has been removed.
 
 ---
 
@@ -171,7 +162,7 @@ engine behind one abstraction:
 `EmailService` is the single entry point for sending:
 
 - Normalizes single-vs-list recipients (`to` accepts one or many).
-- Merges template context (adds `lang`) and renders before calling the provider.
+- Forwards the plain-text `body` to the provider as `text`.
 - Builds the provider `options` dict (`cc`, `bcc`, `reply_to`, `from_email`)
   only from present fields.
 - Returns typed `EmailResponse` — never raises for send failures.
@@ -206,7 +197,7 @@ Structured logging via structlog (`app/logging_config.get_logger(__name__)`).
 
 ```python
 log = get_logger(__name__)
-log.info("send_request", to=to_list, template=request.template)
+log.info("send_request", to=to_list)
 ```
 
 - Event name first (snake_case), then `key=value` context.
@@ -231,10 +222,10 @@ log.info("send_request", to=to_list, template=request.template)
 Every decision must contribute to building:
 
 > **"A lightweight, self-hosted email microservice that is reliable, observable,
-> and easy to extend with new providers and templates."**
+> and easy to extend with new providers."**
 
 This means:
 - **Reliable**: retries, error classification, best-effort batches with admin reports
 - **Observable**: structured logging with request ids and durations
-- **Extensible**: provider registry, Protocol contracts, generic templates
+- **Extensible**: provider registry, Protocol contracts, plain-text and HTML sending
 - **Simple**: no databases, no storage, minimal surface area

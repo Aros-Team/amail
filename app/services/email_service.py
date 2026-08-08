@@ -12,7 +12,6 @@ from app.models.schemas import (
 )
 from app.providers import get_provider
 from app.providers.base import EmailProvider
-from app.render import get_renderer
 from app.services.batch_reporter import send_failure_report
 
 log = get_logger(__name__)
@@ -40,15 +39,11 @@ class EmailService:
         if req.from_email:
             options["from_email"] = str(req.from_email)
 
-        template_data = req.data.copy()
-        template_data["lang"] = req.lang
-        html_content = get_renderer().render(req.template, template_data)
-
         try:
             result = self.sender.send_with_retry(
                 to=to_list,
                 subject=req.subject,
-                html=html_content,
+                text=req.body,
                 options=options,
             )
             return EmailResponse(

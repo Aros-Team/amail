@@ -34,10 +34,10 @@
 - Error mapping: SDK/HTTP failures wrapped in typed errors (retryable vs non-retryable)
 - Mock provider needs no credentials and makes no network calls
 
-### Template Compliance
-- New templates registered in `TEMPLATE_METADATA`
-- No hardcoded branding — all via variables with defaults
-- Bilingual via `lang` (`es`/`en`)
+### Message body
+- Plain-text sends forward `EmailRequest.body` as `text`
+- Sender `html`/`text` params set only when present (no empty `html` beside `text`)
+- Batch report and health check still use `html` (unchanged)
 
 ### Logging
 - Events logged via `get_logger(__name__)` (structlog)
@@ -66,8 +66,7 @@ The reviewer agent must verify:
 - [ ] No `print()`, TODOs without context, unused imports
 - [ ] Type hints on every signature and docstrings on public modules/classes/functions/methods (`uv run ruff check .` enforces this)
 - [ ] Pydantic models used for request/response; `response_model` set
-- [ ] Template metadata updated for new templates
-- [ ] No hardcoded branding in templates
+- [ ] Plain-text sends forward `body` as `text`; sender `html`/`text` set only when present
 - [ ] Logs structured, with `request_id` on sends, no secrets
 - [ ] Tests added and mocked (no real API calls)
 - [ ] Tests follow `docs/testing.md` (mutation mindset, exact asserts, negative/edge paths, no tautologies)

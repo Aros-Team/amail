@@ -8,40 +8,43 @@ from main import app
 client = TestClient(app)
 
 
-def test_list_templates_returns_exact_set() -> None:
-    """Verify the templates endpoint lists the expected template names."""
-    resp = client.get("/api/v1/templates")
+def test_send_plain_text_body_reaches_sender() -> None:
+    """Verify POST /send forwards the plain-text body to the sender as text."""
+    sender = MagicMock()
+    sender.send_with_retry.return_value = {"id": "mock_id", "request_id": "req_1"}
+    provider = MagicMock()
+    provider.sender = sender
+
+    with patch("app.services.email_service.get_provider", return_value=provider):
+        resp = client.post(
+            "/api/v1/send",
+            json={"to": "user@example.com", "subject": "Hello", "body": "Plain body"},
+        )
+
     assert resp.status_code == 200
-    names = {t["name"] for t in resp.json()["templates"]}
-    assert names == {"action", "notification", "verification", "custom"}
-
-
-def test_render_template_ok() -> None:
-    """Verify rendering a valid template returns the expected HTML."""
-    resp = client.post(
-        "/api/v1/templates/render",
-        json={"template": "verification", "data": {"code": "123456", "lang": "en"}},
+    sender.send_with_retry.assert_called_once_with(
+        to=["user@example.com"],
+        subject="Hello",
+        text="Plain body",
+        options={},
     )
-    assert resp.status_code == 200
-    html = resp.json()["html"]
-    assert html.count("123456") == 1
-    assert ">123456</span>" in html
 
 
-def test_render_template_not_found() -> None:
-    """Verify rendering an unknown template returns 404."""
-    resp = client.post(
-        "/api/v1/templates/render",
-        json={"template": "does_not_exist", "data": {}},
-    )
-    assert resp.status_code == 404
-    assert resp.json()["detail"] == "Template 'does_not_exist' not found"
+def test_send_failure_returns_500() -> None:
+    """Verify POST /send translates a sender failure into a 500."""
+    sender = MagicMock()
+    sender.send_with_retry.side_effect = Exception("provider down")
+    provider = MagicMock()
+    provider.sender = sender
 
+    with patch("app.services.email_service.get_provider", return_value=provider):
+        resp = client.post(
+            "/api/v1/send",
+            json={"to": "user@example.com", "subject": "Hello", "body": "Plain body"},
+        )
 
-def test_render_invalid_payload_missing_template() -> None:
-    """Verify a render payload without a template returns 422."""
-    resp = client.post("/api/v1/templates/render", json={"data": {}})
-    assert resp.status_code == 422
+    assert resp.status_code == 500
+    assert resp.json()["detail"] == "provider down"
 
 
 def test_health_email_missing_domain_is_unhealthy() -> None:

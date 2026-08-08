@@ -46,7 +46,7 @@ real role (provider classes keep the suffix by design: `ResendProvider`).
 - **Routes** live in `app/routes/`, one file per domain (`health.py`, `messages.py`).
   Every router is `APIRouter(prefix=..., tags=[...])`.
 - **Services** live in `app/services/` — orchestrators (`email_service.py`),
-  renderers (`templates.py`), reporting (`batch_reporter.py`).
+  reporting (`batch_reporter.py`).
 - **Providers** live in `app/providers/<name>/` with `sender.py`, `receiver.py`,
   `errors.py`, `provider.py`, and an `__init__.py` that self-registers.
 - **Models** live in `app/models/` (`schemas.py` for request/response,
@@ -86,11 +86,14 @@ def send(
     self,
     to: list[str],
     subject: str,
-    html: str,
+    html: str | None = None,
+    text: str | None = None,
     options: dict[str, Any] | None = None,
-    request_id: str | None = None,
 ) -> dict[str, Any]: ...
 ```
+
+- `html` and `text` are both optional. Plain-text sends pass only `text`; the
+  batch failure report and health-check pass only `html`.
 
 ### Error mapping
 
@@ -104,8 +107,8 @@ service facade.
 ## 5. Services
 
 - `EmailService` is the facade over the active provider. It normalizes
-  single-vs-list recipients, merges template context, and returns
-  `EmailResponse` instead of raising for send failures.
+  single-vs-list recipients, forwards the plain-text `body` as `text`, and
+  returns `EmailResponse` instead of raising for send failures.
 - Keep one responsibility per service file.
 - Batch sends use best-effort semantics; on failures and if `ADMIN_EMAIL` is
   configured, forward an HTML failure report.
@@ -129,7 +132,7 @@ Use structlog via `app.logging_config.get_logger(__name__)`.
 
 ```python
 log = get_logger(__name__)
-log.info("send_request", to=to_list, template=request.template)
+log.info("send_request", to=to_list)
 log.error("email_send_error", error=str(e), to=to_list)
 ```
 
@@ -141,15 +144,14 @@ Rules:
 
 ---
 
-## 8. Templates
+## 8. Message body
 
-- Jinja2 templates in `templates/`, one `<name>.html` per template type, macros
-  in `templates/components/`.
-- All template context flows through `build_base_context` — never hardcode
-  branding text/colors in templates.
-- Register new templates in `TEMPLATE_METADATA` in `services/templates.py`
-  (description + variables) so `GET /api/v1/templates` stays accurate.
-- User-visible strings are bilingual via `lang` (`es`/`en`), default `es`.
+- The API sends plain-text email. `EmailRequest.body` carries the message text
+  and is forwarded to the sender as `text`.
+- `html` and `text` are both optional on the sender; only set the one you
+  actually have (never send an empty `html` alongside a plain-text `text`).
+- User-visible strings in HTML content (batch report, health check) live in the
+  code that builds them — no template files.
 
 ---
 
@@ -192,6 +194,6 @@ def send_email(request: EmailRequest): ...
 - TODOs without context
 - Unused imports / dead code
 - Swallowing exceptions with no log
-- Hardcoded branding in templates
+- Hardcoded branding/text in HTML content
 - Real credentials committed (`.env` is gitignored)
 - Route-level logic that belongs in services

@@ -16,16 +16,19 @@ class MockSender:
         self,
         to: list[str],
         subject: str,
-        html: str,
+        html: str | None = None,
+        text: str | None = None,
         options: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Simulate sending an email and return a mock result."""
         email_id = f"mock_{uuid.uuid4().hex[:12]}"
+        body = text if text is not None else html
         log.info(
             "mock_send",
             to=to,
             subject=subject[:80],
             email_id=email_id,
+            body=body[:80] if body else "",
             options=options,
         )
         return {"id": email_id, "request_id": str(uuid.uuid4())}

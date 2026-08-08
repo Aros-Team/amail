@@ -2,44 +2,19 @@
 
 from typing import Any
 
-from pydantic import BaseModel, EmailStr, Field
-
-
-class TemplateVariable(BaseModel):
-    """A single variable accepted by an email template."""
-
-    name: str
-    type: str
-    description: str
-    required: bool
-
-
-class TemplateInfo(BaseModel):
-    """Metadata describing an available email template."""
-
-    name: str
-    description: str
-    variables: list[TemplateVariable]
-
-
-class TemplatesResponse(BaseModel):
-    """Response listing all available email templates."""
-
-    templates: list[TemplateInfo]
+from pydantic import BaseModel, EmailStr
 
 
 class EmailRequest(BaseModel):
-    """Payload for sending a single templated email."""
+    """Payload for sending a single plain-text email."""
 
     to: EmailStr | list[EmailStr]
     subject: str
-    template: str
-    data: dict[str, Any] = {}
+    body: str
     cc: list[EmailStr] | None = None
     bcc: list[EmailStr] | None = None
     reply_to: EmailStr | None = None
     from_email: EmailStr | None = None
-    lang: str = Field(default="es", pattern="^(es|en)$")
 
 
 class EmailResponse(BaseModel):
@@ -69,19 +44,6 @@ class BatchReport(BaseModel):
     results: list[EmailResponse]
     forwarded_to_admin: bool = False
     admin_email: str | None = None
-
-
-class RenderRequest(BaseModel):
-    """Payload for rendering a template without sending."""
-
-    template: str
-    data: dict[str, Any] = {}
-
-
-class RenderResponse(BaseModel):
-    """Rendered HTML output of a template."""
-
-    html: str
 
 
 class WebhookPayload(BaseModel):

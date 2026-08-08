@@ -52,9 +52,9 @@ Assert the **observable contract**, not a side effect or a weak signal.
 
 - Deterministic results → assert the **exact** value/structure.
 - Routes → assert status code **and** the meaningful body fields.
-- HTML/template output → assert **context**, not bare containment. Use unique
-  markers (`>123456<`, `href="..."`) or parse the HTML. Assert security properties:
-  user input must be HTML-escaped.
+- HTML output (batch report, health check) → assert **context**, not bare
+  containment. Use unique markers (`>123456<`, `href="..."`) or parse the HTML.
+  Assert security properties: user input must be HTML-escaped.
 - Every public entry point → negative path (missing, malformed, not-found) **and**
   edge cases (empty, `None`, special characters, unicode, boundaries).
 
@@ -70,32 +70,33 @@ Assert the **observable contract**, not a side effect or a weak signal.
 
 ### Example: weak → strong
 
-Weak (`tests/test_templates.py` today):
+Weak (`tests/test_routes.py` send test today):
 
 ```python
-def test_render_verification():
-    html = render_template("verification", {"code": "123456", "lang": "en"})
-    assert "123456" in html
+def test_send():
+    response = client.post("/api/v1/send", json={...})
+    assert response.status_code == 200
 ```
 
-Passes even if the code renders into the wrong section, appears twice, or the
-email's title is missing entirely.
+Passes even if the wrong body is sent, the sender is called with the wrong
+args, or nothing is sent at all.
 
 Strong:
 
 ```python
-def test_render_verification_places_code_exactly_once():
-    html = render_template("verification", {"code": "123456", "lang": "en"})
-    assert html.count("123456") == 1
+def test_send_plain_text_body_reaches_sender():
+    response = client.post(
+        "/api/v1/send",
+        json={"to": "user@example.com", "subject": "Hello", "body": "Plain body"},
+    )
+    assert response.status_code == 200
+    sender.send_with_retry.assert_called_once_with(
+        to=["user@example.com"], subject="Hello", text="Plain body", options={}
+    )
 
-def test_render_verification_uses_the_code_box_marker():
-    html = render_template("verification", {"code": "123456", "lang": "en"})
-    assert '<div class="code">123456</div>' in html
-
-def test_render_escapes_user_input_to_prevent_xss():
-    html = render_template("action", {"message": "<script>alert(1)</script>", "lang": "en"})
-    assert "<script>alert(1)</script>" not in html
-    assert "&lt;script&gt;" in html
+def test_send_uses_text_not_html():
+    # plain-text sends must forward `text` and never an empty `html`
+    ...assert_called_once_with(..., text="Plain body", options={})
 ```
 
 ---
@@ -131,7 +132,8 @@ The reviewer checks every PR/activity against this policy:
 - [ ] Exact-value assertions on deterministic results; no containment-only or
       tautological asserts
 - [ ] Negative + edge paths tested for every new entry point
-- [ ] HTML/template output: contextual assertions + escaping test
+- [ ] HTML output (batch report, health check): contextual assertions + escaping test
+- [ ] Plain-text sends: assert `text=` reached the sender (not `html`)
 - [ ] Mocks only at boundaries; call arguments asserted precisely
 - [ ] No private-state access in tests
 - [ ] Deterministic: no randomness, no wall-clock asserts without frozen time

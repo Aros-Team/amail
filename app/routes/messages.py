@@ -15,13 +15,8 @@ from app.models.schemas import (
     BatchReport,
     EmailRequest,
     EmailResponse,
-    RenderRequest,
-    RenderResponse,
-    TemplateInfo,
-    TemplatesResponse,
 )
 from app.providers import get_receiver
-from app.render import TemplateNotFoundError, get_renderer
 from app.services.email_service import EmailService
 
 log = get_logger(__name__)
@@ -29,72 +24,23 @@ log = get_logger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["messages"])
 
 
-@router.get(
-    "/templates",
-    response_model=TemplatesResponse,
-    summary="List email templates",
-    description="Returns available templates with their variable metadata.",
-    responses={200: {"description": "Templates list"}},
-)
-def list_templates() -> TemplatesResponse:
-    """List available email templates with their variable metadata."""
-    templates = get_renderer().get_templates()
-    return TemplatesResponse(
-        templates=[
-            TemplateInfo(
-                name=name, description=info["description"], variables=info["variables"]
-            )
-            for name, info in templates.items()
-        ]
-    )
-
-
-@router.post(
-    "/templates/render",
-    response_model=RenderResponse,
-    summary="Render a template",
-    description=(
-        "Renders a template with the given data and returns the HTML. "
-        "Useful for the template preview tool."
-    ),
-    responses={
-        200: {"description": "Rendered HTML"},
-        404: {"model": ErrorDetail, "description": "Template not found"},
-    },
-)
-def render_template_endpoint(request: RenderRequest) -> RenderResponse:
-    """Render a template with the given data and return the HTML."""
-    try:
-        html = get_renderer().render(request.template, request.data)
-        return RenderResponse(html=html)
-    except TemplateNotFoundError as e:
-        raise HTTPException(
-            status_code=404, detail=f"Template '{request.template}' not found"
-        ) from e
-
-
 @router.post(
     "/send",
     response_model=EmailResponse,
     summary="Send a single email",
-    description=(
-        "Send an email using a named template. Accepts a single recipient " "or a list."
-    ),
+    description=("Send a plain-text email. Accepts a single recipient " "or a list."),
     responses={
         200: {"description": "Email sent"},
-        400: {
-            "model": ErrorDetail,
-            "description": "Template not found or validation error",
-        },
+        400: {"model": ErrorDetail, "description": "Validation error"},
         500: {"model": ErrorDetail, "description": "Internal error"},
     },
 )
 def send_email(request: EmailRequest) -> EmailResponse:
-    """Send a single email using a named template."""
+    """Send a single plain-text email."""
     service = EmailService()
 
     to_list = [request.to] if isinstance(request.to, str) else request.to
-    log.info("send_request", to=to_list, template=request.template)
+    log.info("send_request", to=to_list)
 
     result = service.send(request)
     if not result.success:

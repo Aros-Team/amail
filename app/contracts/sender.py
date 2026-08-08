@@ -10,7 +10,8 @@ class EmailSender(Protocol):
         self,
         to: list[str],
         subject: str,
-        html: str,
+        html: str | None = None,
+        text: str | None = None,
         options: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Send an email and return its id and request id."""
@@ -20,7 +21,8 @@ class EmailSender(Protocol):
         self,
         to: list[str],
         subject: str,
-        html: str,
+        html: str | None = None,
+        text: str | None = None,
         options: dict[str, Any] | None = None,
         max_attempts: int = 3,
     ) -> dict[str, Any]:

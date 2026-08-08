@@ -31,8 +31,12 @@ Releases follow the service version reported by the API (`app.version`).
 ## [Unreleased]
 
 ### Added
-- `POST /api/v1/templates/render` — render a template to HTML with given data (used by the template preview tool).
 - Harness workflow (`scripts/harness.py`, `scripts/build_harness.py`) for verifying environment, tracking, lint, compile, and tests.
+
+### Changed
+- Removed the template subsystem: Jinja2 templates, the `render/` seam, `services/templates.py`, and the `/templates` and `/templates/render` endpoints.
+- `EmailRequest` now uses `body` (plain text) instead of `template`/`data`/`lang`.
+- The sender contract and Resend/Mock senders now support both `html` and `text` (optional); `EmailService.send` sends the plain-text `body` as `text`.
 
 ## [1.0.0] — 2026-07-16
 

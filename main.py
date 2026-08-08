@@ -13,7 +13,7 @@ app = FastAPI(
     title="Amail",
     description=(
         "Email microservice with FastAPI and Resend. "
-        "Send, receive, forward, and template emails."
+        "Send, receive, and forward emails."
     ),
     version="1.1.0",  # x-release-please-version
 )

@@ -40,7 +40,8 @@ class ResendSender:
         self,
         to: list[str],
         subject: str,
-        html: str,
+        html: str | None = None,
+        text: str | None = None,
         options: dict[str, Any] | None = None,
         request_id: str | None = None,
     ) -> dict[str, Any]:
@@ -66,8 +67,11 @@ class ResendSender:
                 "from": from_email,
                 "to": to,
                 "subject": subject,
-                "html": html,
             }
+            if html is not None:
+                params["html"] = html
+            if text is not None:
+                params["text"] = text
             if options.get("cc"):
                 params["cc"] = options["cc"]
             if options.get("bcc"):
@@ -229,7 +233,8 @@ class ResendSender:
         self,
         to: list[str],
         subject: str,
-        html: str,
+        html: str | None = None,
+        text: str | None = None,
         options: dict[str, Any] | None = None,
         max_attempts: int = 3,
     ) -> dict[str, Any]:
@@ -270,7 +275,14 @@ class ResendSender:
                 to=to,
                 attempt=attempt_counter["count"],
             )
-            return self.send(to, subject, html, options=options, request_id=request_id)
+            return self.send(
+                to,
+                subject,
+                html=html,
+                text=text,
+                options=options,
+                request_id=request_id,
+            )
 
         try:
             result = _send_with_retry()
