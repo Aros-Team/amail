@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     admin_email: str = ""
     email_provider: str = "resend"
     environment: str = "development"
-    version: str = "1.0.0"  # x-release-please-version
+    version: str = "1.1.0"  # x-release-please-version
     log_level: str = "INFO"
 
     model_config = SettingsConfigDict(
