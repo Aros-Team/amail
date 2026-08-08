@@ -6,4 +6,10 @@ __pycache__/
 .python-version
 .env
 .env.example
+tests/
+progress/
+scripts/
+.github/
+.opencode/
 *.pyc
+*.md
