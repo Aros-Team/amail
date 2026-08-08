@@ -20,6 +20,7 @@ Dependencies point one way only: **routes → services → providers**.
 | Layer | Responsibility | Imports from |
 |-------|---------------|--------------|
 | `routes/` | HTTP surface, request validation, response models | services, models |
+| `render/` | Template rendering seam: single swap point between engines | services/templates, models |
 | `services/` | Business logic: orchestration, rendering, reporting | providers, models |
 | `providers/` | External integrations (Resend/Mock), error mapping | contracts, config |
 | `contracts/` | Protocol definitions — what a provider must implement | typing only |
@@ -138,9 +139,19 @@ Rules:
 
 ## 6. Template Rendering Pattern
 
-All email markup goes through Jinja2 with a shared shell and component macros.
+Email markup is produced through a rendering seam `render/` that isolates the
+engine behind one abstraction:
 
-- `services/templates.py` exposes:
+- `render/__init__.py` exposes `get_renderer()` — the **single swap point**. It
+  currently returns `JinjaRenderer`, but any engine implementing the `Renderer`
+  ABC (`render(name, data) -> html`, `get_templates()`) can be returned here
+  without touching routes or services. Built to host a future Markdown engine.
+- `render/jinja.py` (`JinjaRenderer`) wraps the Jinja2 engine via
+  `services/templates.py` and maps `jinja2.TemplateNotFound` to the project
+  `TemplateNotFoundError`, so the engine's internal error never leaks past the
+  seam.
+- `services/templates.py` is the Jinja2 implementation detail (still consumed
+  by the seam and tests):
   - `render_template(name, data)` → rendered HTML
   - `build_base_context(data)` → extracts brand defaults (`brand_name`,
     `brand_color`, `logo_url`, `support_email`, `lang`) before passing user data

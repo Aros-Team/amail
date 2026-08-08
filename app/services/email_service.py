@@ -12,8 +12,8 @@ from app.models.schemas import (
 )
 from app.providers import get_provider
 from app.providers.base import EmailProvider
+from app.render import get_renderer
 from app.services.batch_reporter import send_failure_report
-from app.services.templates import render_template
 
 log = get_logger(__name__)
 
@@ -42,7 +42,7 @@ class EmailService:
 
         template_data = req.data.copy()
         template_data["lang"] = req.lang
-        html_content = render_template(req.template, template_data)
+        html_content = get_renderer().render(req.template, template_data)
 
         try:
             result = self.sender.send_with_retry(
