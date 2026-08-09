@@ -8,7 +8,7 @@ def test_settings_defaults() -> None:
     assert s.resend_webhook_secret == ""
     assert s.email_provider == "resend"
     assert s.environment == "development"
-    assert s.version == "1.0.0"
+    assert s.version == "1.1.0"
     assert s.log_level == "INFO"
     assert not hasattr(s, "domain")
     assert not hasattr(s, "webhook_emails")
