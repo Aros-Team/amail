@@ -191,7 +191,45 @@ report via the active provider's sender.
 
 ---
 
-## 9. Logging Pattern
+## 9. Authentication Pattern
+
+The service uses API key authentication via the `X-API-Key` header for
+protected endpoints. Implemented as a FastAPI dependency in
+`app/dependencies.py`.
+
+### Protected endpoints
+
+- `POST /api/v1/send` — single email
+- `POST /api/v1/send/batch` — batch email
+
+### Public endpoints
+
+- `GET /health`, `GET /health/email`, `GET /health/webhook` — liveness and
+  readiness checks
+- `POST /api/v1/receive` — Resend webhook receiver (uses Svix signature
+  verification, not API key auth)
+
+### How it works
+
+- The `require_api_key` dependency compares the `X-API-Key` header against the
+  `AMAIL_API_KEY` env var using constant-time comparison (`hmac.compare_digest`).
+- Applied via `dependencies=[Depends(require_api_key)]` on route decorators.
+- Returns `401` with `"Invalid or missing API key"` on failure.
+
+### Dev mode
+
+When `AMAIL_API_KEY` is unset or empty, authentication is disabled — all
+requests pass through. This is intentional for local development.
+
+### Key management
+
+The API key is an opaque string. Generate it externally (e.g.
+`openssl rand -hex 32`) and store it as an env var or secret in your
+deployment. The application never generates or rotates keys.
+
+---
+
+## 10. Logging Pattern
 
 Structured logging via structlog (`app/logging_config.get_logger(__name__)`).
 
@@ -207,7 +245,7 @@ log.info("send_request", to=to_list)
 
 ---
 
-## 10. Testing Pattern
+## 11. Testing Pattern
 
 - `pytest` + `pytest-asyncio`, fixtures in `tests/conftest.py`.
 - Provider boundaries are mocked (`MagicMock`, `patch(...)` on `get_settings`
@@ -217,7 +255,7 @@ log.info("send_request", to=to_list)
 
 ---
 
-## 11. Project Goals
+## 12. Project Goals
 
 Every decision must contribute to building:
 

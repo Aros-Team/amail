@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     resend_api_key: str = ""
     resend_webhook_secret: str = ""
     admin_email: str = ""
+    api_key: str = ""
     email_provider: str = "resend"
     environment: str = "development"
     version: str = "1.1.0"  # x-release-please-version

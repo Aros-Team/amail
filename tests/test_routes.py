@@ -15,10 +15,14 @@ def test_send_plain_text_body_reaches_sender() -> None:
     provider = MagicMock()
     provider.sender = sender
 
-    with patch("amail.services.email_service.get_provider", return_value=provider):
+    with (
+        patch("amail.services.email_service.get_provider", return_value=provider),
+        patch.dict("os.environ", {"AMAIL_API_KEY": "test-key"}),
+    ):
         resp = client.post(
             "/api/v1/send",
             json={"to": "user@example.com", "subject": "Hello", "body": "Plain body"},
+            headers={"X-API-Key": "test-key"},
         )
 
     assert resp.status_code == 200
@@ -37,10 +41,14 @@ def test_send_failure_returns_500() -> None:
     provider = MagicMock()
     provider.sender = sender
 
-    with patch("amail.services.email_service.get_provider", return_value=provider):
+    with (
+        patch("amail.services.email_service.get_provider", return_value=provider),
+        patch.dict("os.environ", {"AMAIL_API_KEY": "test-key"}),
+    ):
         resp = client.post(
             "/api/v1/send",
             json={"to": "user@example.com", "subject": "Hello", "body": "Plain body"},
+            headers={"X-API-Key": "test-key"},
         )
 
     assert resp.status_code == 500

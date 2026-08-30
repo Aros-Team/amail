@@ -5,9 +5,10 @@ import json
 from typing import Any
 
 import resend
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from amail.config import get_settings
+from amail.dependencies import require_api_key
 from amail.logging_config import get_logger
 from amail.models.errors import ErrorDetail
 from amail.models.schemas import (
@@ -34,6 +35,7 @@ router = APIRouter(prefix="/api/v1", tags=["messages"])
         400: {"model": ErrorDetail, "description": "Validation error"},
         500: {"model": ErrorDetail, "description": "Internal error"},
     },
+    dependencies=[Depends(require_api_key)],
 )
 def send_email(request: EmailRequest) -> EmailResponse:
     """Send a single plain-text email."""
@@ -59,6 +61,7 @@ def send_email(request: EmailRequest) -> EmailResponse:
     responses={
         200: {"description": "Batch complete with per-email results"},
     },
+    dependencies=[Depends(require_api_key)],
 )
 def send_batch(request: BatchEmailRequest) -> BatchReport:
     """Send multiple emails and return a per-email batch report."""
