@@ -18,7 +18,7 @@ tasks:
       PORT: "8000"
       NSUB: ""
     cmds:
-      - 'uv run fastapi dev src/amail/main.py --port {{.PORT}} > /tmp/amail-cloud.log 2>&1 &'
+      - 'uv run fastapi dev src/amail/main.py --port {{.PORT}} 2>&1 &'
       - sleep 4
       - 'npx --yes nport {{.PORT}} {{if .NSUB}}-s {{.NSUB}}{{end}}'
 
