@@ -1,5 +1,5 @@
 .env
-src/amail/config/routes.yaml
+config/amail.yaml
 **/__pycache__
 .ruff_cache
 .pytest_cache

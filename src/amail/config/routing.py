@@ -14,7 +14,9 @@ log = get_logger(__name__)
 # Source precedence: env text -> env file path -> dev file.
 ENV_ROUTES = "AMAIL_ROUTES"
 ENV_ROUTES_FILE = "AMAIL_ROUTES_FILE"
-DEV_ROUTES_PATH = Path(__file__).resolve().parent / "routes.yaml"
+DEV_ROUTES_PATH = (
+    Path(__file__).resolve().parent.parent.parent / "config" / "amail.yaml"
+)
 
 
 class InboundRule(BaseModel):
@@ -45,9 +47,7 @@ class RoutingConfig(BaseModel):
     def resolve(self, recipients: list[str]) -> list[str]:
         """Resolve the union of forwards for matched rules, fallback otherwise."""
         matched = [
-            rule
-            for rule in self.inbound
-            if f"{rule.to}@{self.domain}" in recipients
+            rule for rule in self.inbound if f"{rule.to}@{self.domain}" in recipients
         ]
         resolved: list[str] = []
         if matched:
@@ -81,7 +81,7 @@ def _load_cached() -> RoutingConfig | None:
     if source is None:
         log.error(
             "routing_missing",
-            hint="set AMAIL_ROUTES/AMAIL_ROUTES_FILE or src/amail/config/routes.yaml",
+            hint="set AMAIL_ROUTES/AMAIL_ROUTES_FILE or config/amail.yaml",
         )
         return None
     try:

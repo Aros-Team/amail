@@ -62,9 +62,7 @@ def test_resolve_multiple_matched_rules_unions_and_dedups() -> None:
                 to="support",
                 forwards=["ops@example.com", "admin@example.com"],
             ),
-            InboundRule(
-                to="team", forwards=["admin@example.com", "pm@example.com"]
-            ),
+            InboundRule(to="team", forwards=["admin@example.com", "pm@example.com"]),
         ],
     )
     result = config.resolve(["support@example.com", "team@example.com"])

@@ -93,9 +93,7 @@ def test_resend_receiver_forwards_fallback_targets_for_non_accepted_address(
     """Verify email to an un-routed address hits fallback forwards."""
     routing = RoutingConfig(
         domain="test.example.com",
-        inbound=[
-            InboundRule(to="support", forwards=["a@example.com"])
-        ],
+        inbound=[InboundRule(to="support", forwards=["a@example.com"])],
         fallback=Fallback(forwards=["ops@example.com", "backup@example.com"]),
     )
     payload = {
@@ -144,9 +142,7 @@ def test_resend_receiver_ignores_email_to_non_accepted_address_with_empty_fallba
     """Verify emails to un-routed addresses with an empty fallback are ignored."""
     routing = RoutingConfig(
         domain="test.example.com",
-        inbound=[
-            InboundRule(to="support", forwards=["a@example.com"])
-        ],
+        inbound=[InboundRule(to="support", forwards=["a@example.com"])],
     )
     payload = {
         "type": "email.received",
