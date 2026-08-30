@@ -11,7 +11,7 @@ into the image.
 
 ```bash
 # 1. Store the routing contract as a secret
-gcloud secrets create amail-routes --data-file=app/config/routes.yaml
+gcloud secrets create amail-routes --data-file=src/amail/config/routes.yaml
 
 # 2. Deploy, wiring the secret into the AMAIL_ROUTES env var
 gcloud run deploy amail \

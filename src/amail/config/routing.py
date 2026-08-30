@@ -77,7 +77,7 @@ def _load_cached() -> RoutingConfig | None:
     if source is None:
         log.error(
             "routing_missing",
-            hint="set AMAIL_ROUTES/AMAIL_ROUTES_FILE or app/config/routes.yaml",
+            hint="set AMAIL_ROUTES/AMAIL_ROUTES_FILE or src/amail/config/routes.yaml",
         )
         return None
     try:

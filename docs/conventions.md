@@ -55,7 +55,7 @@ real role (provider classes keep the suffix by design: `ResendProvider`).
 - **Config** lives in the `app/config/` package: `settings.py` (env-driven
   `Settings`) and `routing.py` (the declarative YAML routing contract + loader).
   Inbound routing is driven by the contract (`AMAIL_ROUTES` / `AMAIL_ROUTES_FILE`
-  / `app/config/routes.yaml`), never by per-recipient env vars. The `domain`
+  / `src/amail/config/routes.yaml`), never by per-recipient env vars. The `domain`
   belongs in the contract, not in an env var.
 
 ---
