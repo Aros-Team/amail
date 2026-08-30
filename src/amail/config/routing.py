@@ -14,9 +14,7 @@ log = get_logger(__name__)
 # Source precedence: env text -> env file path -> dev file.
 ENV_ROUTES = "AMAIL_ROUTES"
 ENV_ROUTES_FILE = "AMAIL_ROUTES_FILE"
-DEV_ROUTES_PATH = (
-    Path(__file__).resolve().parent.parent.parent / "config" / "amail.yaml"
-)
+DEV_ROUTES_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "amail.yml"
 
 
 class InboundRule(BaseModel):
@@ -81,7 +79,7 @@ def _load_cached() -> RoutingConfig | None:
     if source is None:
         log.error(
             "routing_missing",
-            hint="set AMAIL_ROUTES/AMAIL_ROUTES_FILE or config/amail.yaml",
+            hint="set AMAIL_ROUTES/AMAIL_ROUTES_FILE or config/amail.yml",
         )
         return None
     try:

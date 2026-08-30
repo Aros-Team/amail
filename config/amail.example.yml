@@ -1,11 +1,11 @@
 # Amail inbound routing contract.
 #
-# Copy this file to config/amail.yaml for local development, OR paste its
+# Copy this file to config/amail.yml for local development, OR paste its
 # full content into the AMAIL_ROUTES environment variable / secret for
 # serverless deployments. AMAIL_ROUTES_FILE may instead point to a YAML file.
 #
 # Source precedence: AMAIL_ROUTES (text) -> AMAIL_ROUTES_FILE (path) ->
-# config/amail.yaml (dev file).
+# config/amail.yml (dev file).
 
 # Domain used as the default sender (noreply@{domain}) and by /health/email.
 domain: example.com

@@ -115,7 +115,7 @@ Configuration lives in the `app/config/` package and has two distinct layers:
 
    - `AMAIL_ROUTES` — the YAML content as an env var / secret.
    - `AMAIL_ROUTES_FILE` — path to a YAML file.
-    - `config/amail.yaml` — local development file (gitignored).
+    - `config/amail.yml` — local development file (gitignored).
 
    ```python
    from app.config.routing import load_routing_config
