@@ -1,8 +1,8 @@
 """Resend provider wiring sender and receiver together."""
 
-from app.providers.base import EmailProvider
-from app.providers.resend.receiver import ResendReceiver
-from app.providers.resend.sender import ResendSender
+from amail.providers.base import EmailProvider
+from amail.providers.resend.receiver import ResendReceiver
+from amail.providers.resend.sender import ResendSender
 
 
 class ResendProvider(EmailProvider):

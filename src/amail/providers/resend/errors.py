@@ -1,6 +1,6 @@
 """Typed errors raised by the Resend provider."""
 
-from app.exceptions import EmailError
+from amail.exceptions import EmailError
 
 
 class ResendAPIError(EmailError):

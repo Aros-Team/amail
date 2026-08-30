@@ -2,9 +2,9 @@
 
 from datetime import UTC, datetime
 
-from app.contracts.sender import EmailSender
-from app.logging_config import get_logger
-from app.models.schemas import EmailResponse
+from amail.contracts.sender import EmailSender
+from amail.logging_config import get_logger
+from amail.models.schemas import EmailResponse
 
 log = get_logger(__name__)
 

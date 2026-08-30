@@ -2,7 +2,7 @@ import re
 import tomllib
 from pathlib import Path
 
-from app.config import Settings
+from amail.config import Settings
 
 
 def test_settings_defaults() -> None:

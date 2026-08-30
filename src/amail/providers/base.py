@@ -2,8 +2,8 @@
 
 from abc import ABC
 
-from app.contracts.receiver import EmailReceiver
-from app.contracts.sender import EmailSender
+from amail.contracts.receiver import EmailReceiver
+from amail.contracts.sender import EmailSender
 
 
 class EmailProvider(ABC):

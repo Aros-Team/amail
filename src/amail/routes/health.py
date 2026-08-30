@@ -6,10 +6,10 @@ from datetime import UTC, datetime
 import resend
 from fastapi import APIRouter, HTTPException
 
-from app.config import get_settings
-from app.config.routing import load_routing_config
-from app.logging_config import get_logger
-from app.models.schemas import (
+from amail.config import get_settings
+from amail.config.routing import load_routing_config
+from amail.logging_config import get_logger
+from amail.models.schemas import (
     EmailHealthResponse,
     HealthResponse,
     WebhookHealthResponse,

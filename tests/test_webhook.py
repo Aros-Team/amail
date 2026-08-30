@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.config.routing import Fallback, InboundRule, RoutingConfig
-from app.providers.resend.receiver import ResendReceiver
+from amail.config.routing import Fallback, InboundRule, RoutingConfig
+from amail.providers.resend.receiver import ResendReceiver
 
 
 @pytest.fixture
@@ -32,8 +32,14 @@ def mock_sender() -> MagicMock:
 def receiver(mock_settings: MagicMock, mock_sender: MagicMock) -> ResendReceiver:
     """Build a ResendReceiver with patched settings and sender."""
     with (
-        patch("app.providers.resend.receiver.get_settings", return_value=mock_settings),
-        patch("app.providers.resend.receiver.ResendSender", return_value=mock_sender),
+        patch(
+            "amail.providers.resend.receiver.get_settings",
+            return_value=mock_settings,
+        ),
+        patch(
+            "amail.providers.resend.receiver.ResendSender",
+            return_value=mock_sender,
+        ),
     ):
         r = ResendReceiver()
         r.settings = mock_settings
@@ -66,7 +72,7 @@ def test_resend_receiver_forwards_to_all_matched_targets(
 
     with (
         patch(
-            "app.providers.resend.receiver.load_routing_config", return_value=routing
+            "amail.providers.resend.receiver.load_routing_config", return_value=routing
         ),
         patch.object(
             receiver, "_get_email_content", return_value="<p>Test content</p>"
@@ -104,7 +110,7 @@ def test_resend_receiver_forwards_fallback_targets_for_non_accepted_address(
 
     with (
         patch(
-            "app.providers.resend.receiver.load_routing_config", return_value=routing
+            "amail.providers.resend.receiver.load_routing_config", return_value=routing
         ),
         patch.object(
             receiver, "_get_email_content", return_value="<p>Test content</p>"
@@ -153,7 +159,7 @@ def test_resend_receiver_ignores_email_to_non_accepted_address_with_empty_fallba
     }
 
     with patch(
-        "app.providers.resend.receiver.load_routing_config", return_value=routing
+        "amail.providers.resend.receiver.load_routing_config", return_value=routing
     ):
         result = receiver.receive(payload)
 
@@ -181,7 +187,7 @@ def test_resend_receiver_ignored_when_no_forward_targets(
     }
 
     with patch(
-        "app.providers.resend.receiver.load_routing_config", return_value=routing
+        "amail.providers.resend.receiver.load_routing_config", return_value=routing
     ):
         result = receiver.receive(payload)
 
@@ -204,7 +210,9 @@ def test_resend_receiver_returns_error_when_routing_missing(
         },
     }
 
-    with patch("app.providers.resend.receiver.load_routing_config", return_value=None):
+    with patch(
+        "amail.providers.resend.receiver.load_routing_config", return_value=None
+    ):
         result = receiver.receive(payload)
 
     assert result["status"] == "error"

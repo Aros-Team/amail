@@ -8,7 +8,7 @@ from uuid import uuid4
 import structlog
 from structlog.typing import EventDict, WrappedLogger
 
-from app.config import get_settings
+from amail.config import get_settings
 
 
 def add_request_id(

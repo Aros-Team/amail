@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from app.config.routing import RoutingConfig
-from main import app
+from amail.config.routing import RoutingConfig
+from amail.main import app
 
 client = TestClient(app)
 
@@ -15,7 +15,7 @@ def test_send_plain_text_body_reaches_sender() -> None:
     provider = MagicMock()
     provider.sender = sender
 
-    with patch("app.services.email_service.get_provider", return_value=provider):
+    with patch("amail.services.email_service.get_provider", return_value=provider):
         resp = client.post(
             "/api/v1/send",
             json={"to": "user@example.com", "subject": "Hello", "body": "Plain body"},
@@ -37,7 +37,7 @@ def test_send_failure_returns_500() -> None:
     provider = MagicMock()
     provider.sender = sender
 
-    with patch("app.services.email_service.get_provider", return_value=provider):
+    with patch("amail.services.email_service.get_provider", return_value=provider):
         resp = client.post(
             "/api/v1/send",
             json={"to": "user@example.com", "subject": "Hello", "body": "Plain body"},
@@ -53,8 +53,8 @@ def test_health_email_missing_domain_is_unhealthy() -> None:
     settings.resend_api_key = "re_test_key"
 
     with (
-        patch("app.routes.health.get_settings", return_value=settings),
-        patch("app.routes.health.load_routing_config", return_value=None),
+        patch("amail.routes.health.get_settings", return_value=settings),
+        patch("amail.routes.health.load_routing_config", return_value=None),
     ):
         resp = client.get("/health/email")
 
@@ -70,13 +70,13 @@ def test_health_email_with_domain_reaches_provider() -> None:
     settings.resend_api_key = "re_test_key"
 
     with (
-        patch("app.routes.health.get_settings", return_value=settings),
+        patch("amail.routes.health.get_settings", return_value=settings),
         patch(
-            "app.routes.health.load_routing_config",
+            "amail.routes.health.load_routing_config",
             return_value=RoutingConfig(domain="example.com"),
         ),
         patch(
-            "app.routes.health.resend.Emails.send",
+            "amail.routes.health.resend.Emails.send",
             return_value={"id": "test_id_123"},
         ),
     ):
@@ -94,9 +94,9 @@ def test_health_webhook_configured_with_secret_and_routes() -> None:
     settings.resend_webhook_secret = "whsec_test"
 
     with (
-        patch("app.routes.health.get_settings", return_value=settings),
+        patch("amail.routes.health.get_settings", return_value=settings),
         patch(
-            "app.routes.health.load_routing_config",
+            "amail.routes.health.load_routing_config",
             return_value=RoutingConfig(domain="example.com"),
         ),
     ):
@@ -115,8 +115,8 @@ def test_health_webhook_missing_routes() -> None:
     settings.resend_webhook_secret = "whsec_test"
 
     with (
-        patch("app.routes.health.get_settings", return_value=settings),
-        patch("app.routes.health.load_routing_config", return_value=None),
+        patch("amail.routes.health.get_settings", return_value=settings),
+        patch("amail.routes.health.load_routing_config", return_value=None),
     ):
         resp = client.get("/health/webhook")
 
@@ -133,9 +133,9 @@ def test_health_webhook_missing_secret() -> None:
     settings.resend_webhook_secret = ""
 
     with (
-        patch("app.routes.health.get_settings", return_value=settings),
+        patch("amail.routes.health.get_settings", return_value=settings),
         patch(
-            "app.routes.health.load_routing_config",
+            "amail.routes.health.load_routing_config",
             return_value=RoutingConfig(domain="example.com"),
         ),
     ):

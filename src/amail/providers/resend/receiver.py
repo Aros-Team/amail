@@ -5,10 +5,10 @@ from typing import Any
 
 import resend
 
-from app.config import get_settings
-from app.config.routing import load_routing_config
-from app.logging_config import get_logger
-from app.providers.resend.sender import ResendSender
+from amail.config import get_settings
+from amail.config.routing import load_routing_config
+from amail.logging_config import get_logger
+from amail.providers.resend.sender import ResendSender
 
 log = get_logger(__name__)
 

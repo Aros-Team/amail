@@ -1,11 +1,12 @@
 .env
-app/config/routes.yaml
+src/amail/config/routes.yaml
 **/__pycache__
 .ruff_cache
 .pytest_cache
 **/venv
 deploy.sh
 informe.md
+src/amail.egg-info/
 
 # Harness tracking (session state, not tracked)
 activities.json

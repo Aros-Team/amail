@@ -40,6 +40,7 @@ RUN uv sync --frozen --no-install-project --no-group dev --no-editable
 FROM python:3.13-alpine AS runtime
 
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=src
 ENV PATH="/app/.venv/bin:$PATH"
 ENV HOME="/app"
 
@@ -53,9 +54,7 @@ RUN addgroup --system --gid 10001 appuser \
 # Copy ONLY what the app needs from the builder: the materialized virtualenv
 # plus the application source. No uv, no uvx, no lockfile artifacts.
 COPY --from=builder /app/.venv ./.venv
-COPY app/ ./app/
-COPY templates/ ./templates/
-COPY main.py .
+COPY src/amail ./src/amail
 
 # The app is read-only at runtime (templates and models are only read; email
 # rendering writes nothing), so give the non-root user ownership of the tree.
@@ -74,4 +73,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD python -c "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4); sys.exit(0)" || exit 1
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "amail.main:app", "--host", "0.0.0.0", "--port", "8000"]

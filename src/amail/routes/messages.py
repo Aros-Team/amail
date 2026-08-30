@@ -7,17 +7,17 @@ from typing import Any
 import resend
 from fastapi import APIRouter, HTTPException, Request
 
-from app.config import get_settings
-from app.logging_config import get_logger
-from app.models.errors import ErrorDetail
-from app.models.schemas import (
+from amail.config import get_settings
+from amail.logging_config import get_logger
+from amail.models.errors import ErrorDetail
+from amail.models.schemas import (
     BatchEmailRequest,
     BatchReport,
     EmailRequest,
     EmailResponse,
 )
-from app.providers import get_receiver
-from app.services.email_service import EmailService
+from amail.providers import get_receiver
+from amail.services.email_service import EmailService
 
 log = get_logger(__name__)
 

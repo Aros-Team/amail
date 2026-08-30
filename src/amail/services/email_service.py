@@ -2,17 +2,17 @@
 
 from typing import Any
 
-from app.config import get_settings
-from app.logging_config import get_logger
-from app.models.schemas import (
+from amail.config import get_settings
+from amail.logging_config import get_logger
+from amail.models.schemas import (
     BatchEmailRequest,
     BatchReport,
     EmailRequest,
     EmailResponse,
 )
-from app.providers import get_provider
-from app.providers.base import EmailProvider
-from app.services.batch_reporter import send_failure_report
+from amail.providers import get_provider
+from amail.providers.base import EmailProvider
+from amail.services.batch_reporter import send_failure_report
 
 log = get_logger(__name__)
 

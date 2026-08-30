@@ -3,8 +3,8 @@
 import uuid
 from typing import Any
 
-from app.logging_config import get_logger
-from app.providers.base import EmailProvider
+from amail.logging_config import get_logger
+from amail.providers.base import EmailProvider
 
 log = get_logger(__name__)
 

@@ -1,6 +1,8 @@
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
-pythonpath = ["."]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/amail"]
 
 [project]
 name = "amail"
@@ -10,7 +12,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]==0.141.1",
-    "starlette==1.1.0",  # <1.2 avoids the httpx2 testclient deprecation warning
+    "starlette==1.1.0",
     "pydantic[email]>=2.9.0",
     "pydantic-settings>=2.0",
     "pyyaml>=6.0",

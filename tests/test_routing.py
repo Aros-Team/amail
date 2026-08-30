@@ -1,6 +1,6 @@
 import pytest
 
-from app.config.routing import (
+from amail.config.routing import (
     Fallback,
     InboundRule,
     RoutingConfig,

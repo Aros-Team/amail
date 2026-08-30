@@ -20,7 +20,7 @@
 | `docs/conventions.md` | before write code |
 | `docs/verification.md`, `docs/CHECKPOINTS.md` | before declaring done |
 | `scripts/harness.py` | verification gate |
-| `app/`, `templates/`, `tests/` | implement / verify |
+| `src/amail/`, `tests/` | implement / verify |
 
 - All paths relative to repo root. No absolute paths, no `../`. Workspace name is `aros`.
 

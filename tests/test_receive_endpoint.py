@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from main import app
+from amail.main import app
 
 client = TestClient(app)
 
@@ -40,9 +40,9 @@ def test_receive_webhook_valid_payload_is_processed() -> None:
     receiver.receive.return_value = {"status": "forwarded"}
 
     with (
-        patch("app.routes.messages.resend.Webhooks.verify", new=verify),
-        patch("app.routes.messages.get_receiver", return_value=receiver),
-        patch("app.routes.messages.get_settings", return_value=_mock_settings()),
+        patch("amail.routes.messages.resend.Webhooks.verify", new=verify),
+        patch("amail.routes.messages.get_receiver", return_value=receiver),
+        patch("amail.routes.messages.get_settings", return_value=_mock_settings()),
     ):
         resp = client.post(
             "/api/v1/receive",
@@ -82,11 +82,11 @@ def test_receive_webhook_invalid_signature_returns_400() -> None:
 
     with (
         patch(
-            "app.routes.messages.resend.Webhooks.verify",
+            "amail.routes.messages.resend.Webhooks.verify",
             side_effect=ValueError("no matching signature found"),
         ),
-        patch("app.routes.messages.get_receiver", return_value=receiver),
-        patch("app.routes.messages.get_settings", return_value=_mock_settings()),
+        patch("amail.routes.messages.get_receiver", return_value=receiver),
+        patch("amail.routes.messages.get_settings", return_value=_mock_settings()),
     ):
         resp = client.post(
             "/api/v1/receive",
@@ -102,8 +102,8 @@ def test_receive_webhook_invalid_signature_returns_400() -> None:
 def test_receive_webhook_invalid_payload_returns_400() -> None:
     """A body that verifies but is not valid JSON is rejected as invalid payload."""
     with (
-        patch("app.routes.messages.resend.Webhooks.verify", new=MagicMock()),
-        patch("app.routes.messages.get_settings", return_value=_mock_settings()),
+        patch("amail.routes.messages.resend.Webhooks.verify", new=MagicMock()),
+        patch("amail.routes.messages.get_settings", return_value=_mock_settings()),
     ):
         resp = client.post(
             "/api/v1/receive",
@@ -126,9 +126,9 @@ def test_receive_webhook_non_email_received_event_is_ignored() -> None:
     body = {"type": "email.sent", "data": {}}
 
     with (
-        patch("app.routes.messages.resend.Webhooks.verify", new=MagicMock()),
-        patch("app.routes.messages.get_receiver", return_value=receiver),
-        patch("app.routes.messages.get_settings", return_value=_mock_settings()),
+        patch("amail.routes.messages.resend.Webhooks.verify", new=MagicMock()),
+        patch("amail.routes.messages.get_receiver", return_value=receiver),
+        patch("amail.routes.messages.get_settings", return_value=_mock_settings()),
     ):
         resp = client.post(
             "/api/v1/receive",

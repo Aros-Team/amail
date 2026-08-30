@@ -2,11 +2,11 @@
 
 from typing import TYPE_CHECKING
 
-from app.contracts.receiver import EmailReceiver
-from app.contracts.sender import EmailSender
+from amail.contracts.receiver import EmailReceiver
+from amail.contracts.sender import EmailSender
 
 if TYPE_CHECKING:
-    from app.providers.base import EmailProvider
+    from amail.providers.base import EmailProvider
 
 _registry: dict[str, type["EmailProvider"]] = {}
 
@@ -18,7 +18,7 @@ def register(name: str, cls: type["EmailProvider"]) -> None:
 
 def get_provider(name: str | None = None) -> "EmailProvider":
     """Return an instantiated provider, optionally selecting by name."""
-    from app.config import get_settings
+    from amail.config import get_settings
 
     provider_name = name or get_settings().email_provider
     if provider_name not in _registry:

@@ -99,7 +99,7 @@ When launching sub-agents, instruct them to write results to files (e.g. `progre
 ## When NOT to Delegate
 
 - Conceptual questions or repo exploration (read-only) → answer directly, no sub-agents
-- Changes outside `app/`, `templates/`, and `tests/` (docs, config, progress/) → edit yourself
+- Changes outside `src/amail/` and `tests/` (docs, config, progress/) → edit yourself
 
 ## Activity Entry Structure
 

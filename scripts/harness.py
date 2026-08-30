@@ -175,7 +175,7 @@ else:
 
 print("\n── 5. Compilation ─────────────────────────────────────")
 
-result = run(["uv", "run", "python", "-m", "compileall", "-q", "app", "main.py"])
+result = run(["uv", "run", "python", "-m", "compileall", "-q", "src/amail"])
 if result.returncode == 0:
     ok("Compilation succeeded")
 else:

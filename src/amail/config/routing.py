@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, EmailStr, Field
 
-from app.logging_config import get_logger
+from amail.logging_config import get_logger
 
 log = get_logger(__name__)
 
