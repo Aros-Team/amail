@@ -14,12 +14,12 @@ domain: example.com
 # targets. Email to an address not in this list is ignored.
 inbound:
   # Single forward target.
-  - to: support@example.com
+  - to: support
     forwards:
       - ops@team.example.com
 
   # Multiple forward targets (email is sent to the union).
-  - to: team@example.com
+  - to: team
     forwards:
       - ops@team.example.com
       - backup.team@example.com

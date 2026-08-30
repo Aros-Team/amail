@@ -55,7 +55,7 @@ def test_resend_receiver_forwards_to_all_matched_targets(
         domain="test.example.com",
         inbound=[
             InboundRule(
-                to="support@test.example.com",
+                to="support",
                 forwards=["one@example.com", "two@example.com"],
             )
         ],
@@ -94,7 +94,7 @@ def test_resend_receiver_forwards_fallback_targets_for_non_accepted_address(
     routing = RoutingConfig(
         domain="test.example.com",
         inbound=[
-            InboundRule(to="support@test.example.com", forwards=["a@example.com"])
+            InboundRule(to="support", forwards=["a@example.com"])
         ],
         fallback=Fallback(forwards=["ops@example.com", "backup@example.com"]),
     )
@@ -145,7 +145,7 @@ def test_resend_receiver_ignores_email_to_non_accepted_address_with_empty_fallba
     routing = RoutingConfig(
         domain="test.example.com",
         inbound=[
-            InboundRule(to="support@test.example.com", forwards=["a@example.com"])
+            InboundRule(to="support", forwards=["a@example.com"])
         ],
     )
     payload = {
@@ -174,7 +174,7 @@ def test_resend_receiver_ignored_when_no_forward_targets(
     """Verify an accepted email with no resolved forwards is ignored."""
     routing = RoutingConfig(
         domain="test.example.com",
-        inbound=[InboundRule(to="support@test.example.com", forwards=[])],
+        inbound=[InboundRule(to="support", forwards=[])],
     )
     payload = {
         "type": "email.received",

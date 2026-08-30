@@ -20,7 +20,7 @@ DEV_ROUTES_PATH = Path(__file__).resolve().parent / "routes.yaml"
 class InboundRule(BaseModel):
     """A single inbound recipient mapped to one or more forward targets."""
 
-    to: EmailStr
+    to: str
     forwards: list[EmailStr] = Field(default_factory=list)
 
 
@@ -40,11 +40,15 @@ class RoutingConfig(BaseModel):
     @property
     def accepted_recipients(self) -> set[str]:
         """Return the set of all inbound rule `to` addresses."""
-        return {rule.to for rule in self.inbound}
+        return {f"{rule.to}@{self.domain}" for rule in self.inbound}
 
     def resolve(self, recipients: list[str]) -> list[str]:
         """Resolve the union of forwards for matched rules, fallback otherwise."""
-        matched = [rule for rule in self.inbound if rule.to in recipients]
+        matched = [
+            rule
+            for rule in self.inbound
+            if f"{rule.to}@{self.domain}" in recipients
+        ]
         resolved: list[str] = []
         if matched:
             for rule in matched:

@@ -14,9 +14,9 @@ def test_load_routing_config_reads_from_env(monkeypatch: pytest.MonkeyPatch) -> 
     yaml_text = """
 domain: example.com
 inbound:
-  - to: support@example.com
+  - to: support
     forwards: [ops@example.com]
-  - to: team@example.com
+  - to: team
     forwards: [team@example.com, backup@example.com]
 fallback:
   forwards: [default@example.com]
@@ -48,7 +48,7 @@ def test_resolve_single_rule_returns_its_forwards() -> None:
     """Verify resolve returns the forward list of the single matching rule."""
     config = RoutingConfig(
         domain="example.com",
-        inbound=[InboundRule(to="support@example.com", forwards=["ops@example.com"])],
+        inbound=[InboundRule(to="support", forwards=["ops@example.com"])],
     )
     assert config.resolve(["support@example.com"]) == ["ops@example.com"]
 
@@ -59,11 +59,11 @@ def test_resolve_multiple_matched_rules_unions_and_dedups() -> None:
         domain="example.com",
         inbound=[
             InboundRule(
-                to="support@example.com",
+                to="support",
                 forwards=["ops@example.com", "admin@example.com"],
             ),
             InboundRule(
-                to="team@example.com", forwards=["admin@example.com", "pm@example.com"]
+                to="team", forwards=["admin@example.com", "pm@example.com"]
             ),
         ],
     )
@@ -75,7 +75,7 @@ def test_resolve_uses_fallback_when_no_rule_matches() -> None:
     """Verify fallback forwards are used when no rule matches the recipients."""
     config = RoutingConfig(
         domain="example.com",
-        inbound=[InboundRule(to="support@example.com", forwards=["ops@example.com"])],
+        inbound=[InboundRule(to="support", forwards=["ops@example.com"])],
         fallback=Fallback(forwards=["default@example.com"]),
     )
     assert config.resolve(["unknown@example.com"]) == ["default@example.com"]
@@ -85,7 +85,7 @@ def test_resolve_returns_empty_when_no_match_and_empty_fallback() -> None:
     """Verify resolve returns [] when nothing matches and fallback is empty."""
     config = RoutingConfig(
         domain="example.com",
-        inbound=[InboundRule(to="support@example.com", forwards=["ops@example.com"])],
+        inbound=[InboundRule(to="support", forwards=["ops@example.com"])],
     )
     assert config.resolve(["unknown@example.com"]) == []
 
@@ -102,12 +102,12 @@ def test_invalid_yaml_yields_none(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_accepted_recipients_returns_rules_to_set() -> None:
-    """Verify accepted_recipients is the set of all rule `to` values."""
+    """Verify accepted_recipients is the set of all rule `to` addresses."""
     config = RoutingConfig(
         domain="example.com",
         inbound=[
-            InboundRule(to="support@example.com", forwards=["a@example.com"]),
-            InboundRule(to="team@example.com", forwards=["b@example.com"]),
+            InboundRule(to="support", forwards=["a@example.com"]),
+            InboundRule(to="team", forwards=["b@example.com"]),
         ],
     )
     assert config.accepted_recipients == {"support@example.com", "team@example.com"}
