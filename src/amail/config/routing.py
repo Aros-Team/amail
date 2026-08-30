@@ -14,7 +14,9 @@ log = get_logger(__name__)
 # Source precedence: env text -> env file path -> dev file.
 ENV_ROUTES = "AMAIL_ROUTES"
 ENV_ROUTES_FILE = "AMAIL_ROUTES_FILE"
-DEV_ROUTES_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "amail.yml"
+DEV_ROUTES_PATH = (
+    Path(__file__).resolve().parent.parent.parent.parent / "config" / "amail.yml"
+)
 
 
 class InboundRule(BaseModel):

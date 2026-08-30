@@ -123,4 +123,11 @@ async def receive_email(request: Request) -> dict[str, Any]:
             status_code=500, detail="No receiver configured for active provider"
         )
 
-    return await asyncio.to_thread(receiver.receive, payload_dict)
+    result = await asyncio.to_thread(receiver.receive, payload_dict)
+
+    if result.get("status") == "error":
+        raise HTTPException(
+            status_code=500, detail=result.get("reason", "receive failed")
+        )
+
+    return result

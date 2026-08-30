@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from amail.config.routing import (
@@ -37,6 +39,9 @@ def test_load_routing_config_missing_is_none(monkeypatch: pytest.MonkeyPatch) ->
     """Verify load_routing_config returns None when every source is absent."""
     monkeypatch.delenv("AMAIL_ROUTES", raising=False)
     monkeypatch.delenv("AMAIL_ROUTES_FILE", raising=False)
+    monkeypatch.setattr(
+        "amail.config.routing.DEV_ROUTES_PATH", Path("/nonexistent/amail.yml")
+    )
     reset_routing_cache()
     try:
         assert load_routing_config() is None
