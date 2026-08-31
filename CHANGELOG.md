@@ -3,6 +3,27 @@
 All notable changes to this project are documented in this file.
 Releases follow the service version reported by the API (`app.version`).
 
+## [1.2.0](https://github.com/Aros-Team/amail/compare/v1.1.0...v1.2.0) (2026-08-31)
+
+
+### Features
+
+* add API key authentication for send endpoints ([47795ba](https://github.com/Aros-Team/amail/commit/47795ba000121d202a833b5fce7ef2ba397e5a4f))
+
+
+### Bug Fixes
+
+* **ci:** add build-system, fix compileall paths for src layout ([86cd8d2](https://github.com/Aros-Team/amail/commit/86cd8d27204035e6774186d28eda3e2a17b336a0))
+* require API key in production + limit request body to 1MB ([91ce5db](https://github.com/Aros-Team/amail/commit/91ce5db170fed8cde8cadc17d438a14ded4c7009))
+* return 500 on receive errors + fix DEV_ROUTES_PATH ([c748114](https://github.com/Aros-Team/amail/commit/c74811485d75b2e38d36204d16b8a4ac5b9716fb))
+* **taskfile:** show server logs in run:cloud instead of hiding them ([b8357a8](https://github.com/Aros-Team/amail/commit/b8357a834931ddab22c2f641f9fd2846a7c7913b))
+* update stale app/config/routes paths to src/amail/config/routes ([ff3322c](https://github.com/Aros-Team/amail/commit/ff3322c3ecbf6f6591a3df8b5e73726305bfeb02))
+
+
+### Documentation
+
+* add ADRs for rate limiting and routing convention ([e0e0809](https://github.com/Aros-Team/amail/commit/e0e0809afd00f9f87490dfc6dca8a25cd834f73d))
+
 ## [1.1.0](https://github.com/Aros-Team/amail/compare/v1.0.0...v1.1.0) (2026-08-08)
 
 
