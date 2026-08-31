@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     api_key: str = ""
     email_provider: str = "resend"
     environment: str = "development"
-    version: str = "1.2.0"  # x-release-please-version
+    version: str = "1.2.1"  # x-release-please-version
     log_level: str = "INFO"
 
     model_config = SettingsConfigDict(

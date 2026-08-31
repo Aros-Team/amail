@@ -3,6 +3,13 @@
 All notable changes to this project are documented in this file.
 Releases follow the service version reported by the API (`app.version`).
 
+## [1.2.1](https://github.com/Aros-Team/amail/compare/v1.2.0...v1.2.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* sync version to 1.2.0 + fix release-please paths for src layout ([106993b](https://github.com/Aros-Team/amail/commit/106993b333c51884adf755ec5f8e9dbcc06ecf6e))
+
 ## [1.2.0](https://github.com/Aros-Team/amail/compare/v1.1.0...v1.2.0) (2026-08-31)
 
 
