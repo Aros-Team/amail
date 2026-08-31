@@ -5,11 +5,11 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "app/config/settings.py"
+          "path": "src/amail/config/settings.py"
         },
         {
           "type": "generic",
-          "path": "main.py"
+          "path": "src/amail/main.py"
         }
       ]
     }

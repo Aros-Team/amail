@@ -51,7 +51,7 @@ def create_app() -> FastAPI:
             "Email microservice with FastAPI and Resend. "
             "Send, receive, and forward emails."
         ),
-        version="1.1.0",  # x-release-please-version
+        version="1.2.0",  # x-release-please-version
     )
 
     application.add_middleware(BodyLimitMiddleware)
