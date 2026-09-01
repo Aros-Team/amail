@@ -18,8 +18,6 @@ from amail.models.schemas import (
 router = APIRouter(tags=["health"])
 log = get_logger(__name__)
 
-TEST_EMAIL = "test@resend.dev"
-
 
 @router.get(
     "/health",
@@ -36,69 +34,40 @@ def health_check() -> HealthResponse:
 
 
 @router.get(
-    "/health/email",
+    "/health/provider",
     response_model=EmailHealthResponse,
-    summary="Email provider health",
-    description=(
-        "Tests connectivity to the email provider by sending a test email "
-        "to resend.dev."
-    ),
+    summary="Provider connection health",
+    description="Verifies API key and connection to the email provider.",
 )
-def email_health_check() -> EmailHealthResponse:
-    """Check email provider connectivity by sending a test email."""
+def provider_health_check() -> EmailHealthResponse:
+    """Check provider connectivity by listing domains."""
     settings = get_settings()
-    resend.api_key = settings.resend_api_key
-
-    routing = load_routing_config()
-    domain = routing.domain if routing else ""
-
-    if not domain:
-        log.warning(
-            "email_health_check_missing_domain",
-            hint="set the domain in the routing contract (AMAIL_ROUTES)",
-        )
+    if not settings.resend_api_key:
         raise HTTPException(
             status_code=503,
             detail=EmailHealthResponse(
                 status="unhealthy",
                 status_code=503,
-                message=(
-                    "No email domain configured - set the domain in your routing "
-                    "contract (AMAIL_ROUTES / AMAIL_ROUTES_FILE) to run email "
-                    "health checks"
-                ),
+                message="No API key configured",
                 timestamp=datetime.now(UTC).isoformat(),
             ).model_dump(),
         )
 
-    log.info("email_health_check_start", domain=domain, test_email=TEST_EMAIL)
+    from amail.providers.resend.sender import ResendSender
+
+    ResendSender()
 
     start_time = time.perf_counter()
-
     try:
-        params = {
-            "from": f"test@{domain}",
-            "to": [TEST_EMAIL],
-            "subject": "Health Check - Amail",
-            "html": "<p>Health check email</p>",
-        }
-
-        response = resend.Emails.send(params)
+        resend.Domains.list()
         duration_ms = (time.perf_counter() - start_time) * 1000
 
-        resend_id = response.get("id", "")
-        log.info(
-            "email_health_check_success",
-            resend_id=resend_id,
-            duration_ms=round(duration_ms, 2),
-        )
+        log.info("provider_health_check_success", duration_ms=round(duration_ms, 2))
 
         return EmailHealthResponse(
             status="healthy",
             latency_ms=round(duration_ms, 2),
             status_code=200,
-            resend_id=resend_id,
-            test_email=TEST_EMAIL,
             timestamp=datetime.now(UTC).isoformat(),
         )
 
@@ -107,13 +76,13 @@ def email_health_check() -> EmailHealthResponse:
         status_code = getattr(e, "status_code", 503)
 
         log.error(
-            "email_health_check_failure",
+            "provider_health_check_failure",
             duration_ms=round(duration_ms, 2),
             error=str(e),
         )
 
         raise HTTPException(
-            status_code=status_code,
+            status_code=503,
             detail=EmailHealthResponse(
                 status="unhealthy",
                 latency_ms=round(duration_ms, 2),

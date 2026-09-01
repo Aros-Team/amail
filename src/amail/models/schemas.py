@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 
 
 class EmailRequest(BaseModel):
@@ -33,6 +33,18 @@ class BatchEmailRequest(BaseModel):
     emails: list[EmailRequest]
     parallel: bool = True
     continue_on_error: bool = True
+
+    @model_validator(mode="after")
+    def check_batch_size(self) -> "BatchEmailRequest":
+        """Raise if emails list exceeds the configured max batch size."""
+        import os
+
+        max_size = int(os.environ.get("AMAIL_MAX_BATCH_SIZE", "25"))
+        if len(self.emails) > max_size:
+            raise ValueError(
+                f"Batch size {len(self.emails)} exceeds maximum of {max_size}"
+            )
+        return self
 
 
 class BatchReport(BaseModel):

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     version: str = "1.2.1"  # x-release-please-version
     log_level: str = "INFO"
+    max_batch_size: int = 25
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

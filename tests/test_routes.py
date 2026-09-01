@@ -55,45 +55,35 @@ def test_send_failure_returns_500() -> None:
     assert resp.json()["detail"] == "provider down"
 
 
-def test_health_email_missing_domain_is_unhealthy() -> None:
-    """Verify /health/email alerts when no domain is in the routing contract."""
+def test_provider_health_missing_key_returns_503() -> None:
+    """Verify /health/provider returns 503 when no API key is configured."""
     settings = MagicMock()
-    settings.resend_api_key = "re_test_key"
+    settings.resend_api_key = ""
 
-    with (
-        patch("amail.routes.health.get_settings", return_value=settings),
-        patch("amail.routes.health.load_routing_config", return_value=None),
-    ):
-        resp = client.get("/health/email")
+    with patch("amail.routes.health.get_settings", return_value=settings):
+        resp = client.get("/health/provider")
 
     assert resp.status_code == 503
     body = resp.json()["detail"]
     assert body["status"] == "unhealthy"
-    assert "AMAIL_ROUTES" in body["message"]
+    assert "API key" in body["message"]
 
 
-def test_health_email_with_domain_reaches_provider() -> None:
-    """Verify /health/email proceeds and reports healthy when the domain is set."""
+def test_provider_health_valid_key_calls_domains_list() -> None:
+    """Verify /health/provider calls domains.list() and reports healthy."""
     settings = MagicMock()
     settings.resend_api_key = "re_test_key"
 
     with (
         patch("amail.routes.health.get_settings", return_value=settings),
-        patch(
-            "amail.routes.health.load_routing_config",
-            return_value=RoutingConfig(domain="example.com"),
-        ),
-        patch(
-            "amail.routes.health.resend.Emails.send",
-            return_value={"id": "test_id_123"},
-        ),
+        patch("amail.routes.health.resend.Domains.list", return_value={"data": []}),
+        patch("amail.providers.resend.sender.ResendSender.__init__", return_value=None),
     ):
-        resp = client.get("/health/email")
+        resp = client.get("/health/provider")
 
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] == "healthy"
-    assert body["resend_id"] == "test_id_123"
 
 
 def test_health_webhook_configured_with_secret_and_routes() -> None:

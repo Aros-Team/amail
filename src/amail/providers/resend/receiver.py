@@ -61,7 +61,6 @@ class ResendReceiver:
                 log.info(
                     "email_content_fetch_retry", attempt=attempt + 1, email_id=email_id
                 )
-                resend.api_key = self.settings.resend_api_key
                 response = resend.Emails.Receiving.get(email_id=email_id)
                 log.debug("email_content_response", has_response=response is not None)
 
