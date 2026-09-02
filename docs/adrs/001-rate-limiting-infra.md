@@ -1,42 +1,71 @@
-# ADR-001: Rate Limiting at Infrastructure Level
+# ADR-001: Rate Limiting — Dual-Layer Strategy
 
 ## Status
 
-Accepted
+Accepted (updated)
 
 ## Context
 
-Amail is a serverless email microservice deployed on Cloud Run. Each request may be handled by a different instance, making in-memory rate limiting unreliable (state is not shared across instances).
+Amail is a serverless email microservice deployed on Cloud Run. Each request may be handled by a different instance, making in-memory rate limiting unreliable as a sole defense (state is not shared across instances).
 
-Rate limiting is needed to protect the service from abuse, bot traffic, and accidental overload.
+Rate limiting is needed to protect the service from:
+- **Brute force attacks**: Compromised API key used to flood the service
+- **Traffic spikes**: Sudden bursts that overwhelm a single instance
+- **Accidental overload**: Misconfigured clients sending excessive requests
+
+### Why IP-based limiting doesn't work
+
+Cloud Run assigns each request to an arbitrary instance. The `X-Forwarded-For` header may contain the caller IP, but:
+- In serverless, IPs rotate across requests (no sticky sessions)
+- A single legitimate user behind NAT appears as one IP but may need high throughput
+- IP-based limits break when autoscaling — the same IP hits different instances with independent counters
 
 ## Decision
 
-Rate limiting will NOT be implemented in the application code. It will be handled at the infrastructure layer using Google Cloud Armor or API Gateway.
+A **dual-layer** strategy: infrastructure rate limiting (primary) + basic app-level rate limiting (defense-in-depth).
 
-### Why not in-app rate limiting?
+### Layer 1: Infrastructure (primary defense)
 
-- **Stateless architecture**: Cloud Run instances don't share memory. A per-instance counter allows `N * instances` requests, defeating the limit.
-- **Redis/Memorystore**: Adds cost, latency, and operational complexity for a problem the platform already solves.
-- **Slowapi/in-memory**: Only works reliably with a single instance. Breaks silently when autoscaling kicks in.
-
-### Why infrastructure-level?
-
-- **Applied before compute**: Requests are rejected at the load balancer, saving CPU/memory.
-- **Shared state**: Cloud Armor and API Gateway maintain global counters across all instances.
-- **Configurable without deploys**: Rate limits can be adjusted in the console without code changes or redeployment.
-- **Visible in monitoring**: Cloud Armor metrics integrate with Cloud Monitoring out of the box.
-
-### Recommended configuration
+Cloud Armor / API Gateway handles global, shared-state rate limiting. This is the primary defense against sustained abuse.
 
 | Endpoint | Rate Limit | Notes |
 |----------|-----------|-------|
 | `POST /api/v1/send` | 60 req/min per API key | Primary protection |
 | `POST /api/v1/send/batch` | 10 req/min per API key | Heavier operation |
-| `POST /api/v1/receive` | Unlimited | Resend webhook, no abuse vector |
+| `POST /api/v1/receive` | Unlimited | Resend webhook, signed |
 | `GET /health*` | Unlimited | Health checks |
 
 Key-based rate limiting via `X-API-Key` header in Cloud Armor rules.
+
+### Layer 2: App-level (defense-in-depth)
+
+Basic in-memory rate limiting per instance. Protects against brute force and traffic spikes **within a single instance**.
+
+| Endpoint Group | Per Second | Per Minute | Env Vars |
+|---------------|-----------|-----------|----------|
+| Send (`/send`, `/send/batch`) | 10 | 60 | `AMAIL_RATE_LIMIT_SEND_PER_SEC`, `AMAIL_RATE_LIMIT_SEND_PER_MIN` |
+| Receive (`/receive`) | 10 | 60 | `AMAIL_RATE_LIMIT_RECEIVE_PER_SEC`, `AMAIL_RATE_LIMIT_RECEIVE_PER_MIN` |
+| Health (`/health*`) | — | 300 | `AMAIL_RATE_LIMIT_HEALTH_PER_MIN` |
+
+Implementation: `SlidingWindowRateLimiter` using deques in `src/amail/middleware/rate_limit.py`. Applied as FastAPI dependencies on route groups.
+
+### What app-level rate limiting protects against
+
+- **Brute force with compromised API key**: An attacker flooding `/send` from a single instance hits the 10 req/s limit
+- **Traffic spikes**: A sudden burst is throttled before reaching Resend
+- **Health check abuse**: Monitoring tools hammering `/health` are bounded at 300 req/min
+
+### What it does NOT protect against
+
+- **Sustained abuse under the limit**: An attacker sending 59 req/min (just under 60/min) can send ~85K emails/day. This requires infrastructure-level protection (Cloud Armor) or Resend's own limits.
+- **Distributed attacks**: In-memory counters are per-instance. N instances × limit = N × limit effective throughput. Only infrastructure rate limiting provides global counters.
+- **Cross-instance coordination**: Each Cloud Run instance has independent counters. No shared state.
+
+### Why not Redis/Memorystore?
+
+- Adds cost, latency, and operational complexity
+- Defeats the "no database, no storage" design goal
+- Cloud Armor already solves the shared-state problem at the infrastructure layer
 
 ### Resend limits
 
@@ -44,7 +73,8 @@ Resend enforces its own rate limits (100 emails/second on free tier). These are 
 
 ## Consequences
 
-- No rate limiting dependencies in `pyproject.toml`
-- No rate limiting code in `src/amail/`
-- Rate limiting configuration lives in Terraform / gcloud commands, not in the app
-- Documented in `docs/architecture.md` as an infrastructure concern
+- Rate limiting is configured both in infrastructure (Cloud Armor) and in the app (env vars)
+- App-level limits are per-instance — they complement, not replace, infrastructure limits
+- No new dependencies — rate limiter uses only stdlib (`collections.deque`, `threading.Lock`, `time.monotonic`)
+- Rate limit configuration in the app is documented in `.env.example`
+- This ADR documents the limitation: app-level rate limiting is not a substitute for proper infrastructure protection against sustained abuse
