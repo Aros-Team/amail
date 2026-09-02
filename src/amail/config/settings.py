@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     max_batch_size: int = 25
 
+    # Rate limiting (per-instance, in-memory)
+    rate_limit_send_per_sec: int = 10
+    rate_limit_send_per_min: int = 60
+    rate_limit_receive_per_sec: int = 10
+    rate_limit_receive_per_min: int = 60
+    rate_limit_health_per_min: int = 300
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )

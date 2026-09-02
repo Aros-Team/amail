@@ -4,12 +4,14 @@ import time
 from datetime import UTC, datetime
 
 import resend
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from amail.config import get_settings
 from amail.config.routing import load_routing_config
+from amail.dependencies import rate_limit_dependency
 from amail.logging_config import get_logger
+from amail.middleware.rate_limit import get_rate_limiter
 from amail.models.schemas import (
     EmailHealthResponse,
     HealthResponse,
@@ -19,12 +21,23 @@ from amail.models.schemas import (
 router = APIRouter(tags=["health"])
 log = get_logger(__name__)
 
+_limiter = get_rate_limiter()
+_health_limit = rate_limit_dependency(
+    _limiter,
+    "health",
+    per_sec_env="AMAIL_RATE_LIMIT_HEALTH_PER_SEC",
+    per_sec_default=300,
+    per_min_env="AMAIL_RATE_LIMIT_HEALTH_PER_MIN",
+    per_min_default=300,
+)
+
 
 @router.get(
     "/health",
     response_model=HealthResponse,
     summary="Health check",
     description="Simple liveness probe.",
+    dependencies=[Depends(_health_limit)],
 )
 def health_check() -> HealthResponse:
     """Return a simple liveness probe response."""

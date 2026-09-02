@@ -8,8 +8,9 @@ import resend
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from amail.config import get_settings
-from amail.dependencies import require_api_key
+from amail.dependencies import rate_limit_dependency, require_api_key
 from amail.logging_config import get_logger
+from amail.middleware.rate_limit import get_rate_limiter
 from amail.models.errors import ErrorDetail
 from amail.models.schemas import (
     BatchEmailRequest,
@@ -24,6 +25,24 @@ log = get_logger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["messages"])
 
+_limiter = get_rate_limiter()
+_send_limit = rate_limit_dependency(
+    _limiter,
+    "send",
+    per_sec_env="AMAIL_RATE_LIMIT_SEND_PER_SEC",
+    per_sec_default=10,
+    per_min_env="AMAIL_RATE_LIMIT_SEND_PER_MIN",
+    per_min_default=60,
+)
+_receive_limit = rate_limit_dependency(
+    _limiter,
+    "receive",
+    per_sec_env="AMAIL_RATE_LIMIT_RECEIVE_PER_SEC",
+    per_sec_default=10,
+    per_min_env="AMAIL_RATE_LIMIT_RECEIVE_PER_MIN",
+    per_min_default=60,
+)
+
 
 @router.post(
     "/send",
@@ -35,7 +54,7 @@ router = APIRouter(prefix="/api/v1", tags=["messages"])
         400: {"model": ErrorDetail, "description": "Validation error"},
         500: {"model": ErrorDetail, "description": "Internal error"},
     },
-    dependencies=[Depends(require_api_key)],
+    dependencies=[Depends(require_api_key), Depends(_send_limit)],
 )
 def send_email(request: EmailRequest) -> EmailResponse:
     """Send a single plain-text email."""
@@ -81,6 +100,7 @@ def send_batch(request: BatchEmailRequest) -> BatchReport:
         200: {"description": "Webhook processed"},
         400: {"description": "Missing headers or invalid payload"},
     },
+    dependencies=[Depends(_receive_limit)],
 )
 async def receive_email(request: Request) -> dict[str, Any]:
     """Process an incoming Resend webhook with signature verification."""
