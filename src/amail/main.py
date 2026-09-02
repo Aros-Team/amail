@@ -23,13 +23,31 @@ class BodyLimitMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: object,
     ) -> JSONResponse:
-        """Check content-length before passing to the next handler."""
+        """Check body size via Content-Length header or actual body read."""
         content_length = request.headers.get("content-length")
-        if content_length and int(content_length) > MAX_BODY_BYTES:
+
+        # Case 1: Valid Content-Length — check it
+        if content_length is not None:
+            try:
+                cl = int(content_length)
+            except ValueError:
+                cl = -1  # invalid = treat as too large
+            if cl < 0 or cl > MAX_BODY_BYTES:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "Request body too large"},
+                )
+            return await call_next(request)  # type: ignore[misc]
+
+        # Case 2: No Content-Length — read body and check actual size
+        body = await request.body()
+        if len(body) > MAX_BODY_BYTES:
             return JSONResponse(
                 status_code=413,
                 content={"detail": "Request body too large"},
             )
+        # Cache the consumed body so downstream handlers can re-read it
+        request._body = body
         return await call_next(request)  # type: ignore[misc]
 
 
@@ -45,6 +63,8 @@ def create_app() -> FastAPI:
             'python -c "import secrets; print(secrets.token_urlsafe(32))"'
         )
 
+    is_production = environment == "production"
+
     application = FastAPI(
         title="Amail",
         description=(
@@ -52,6 +72,8 @@ def create_app() -> FastAPI:
             "Send, receive, and forward emails."
         ),
         version="1.2.1",  # x-release-please-version
+        docs_url=None if is_production else "/docs",
+        redoc_url=None if is_production else "/redoc",
     )
 
     application.add_middleware(BodyLimitMiddleware)
