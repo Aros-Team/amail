@@ -18,6 +18,15 @@ DEV_ROUTES_PATH = (
     Path(__file__).resolve().parent.parent.parent.parent / "config" / "amail.yml"
 )
 
+# Allowed directory prefixes for AMAIL_ROUTES_FILE
+# Cloud Run mounted secrets, system config, user home, working directory
+ALLOWED_PREFIXES: tuple[Path, ...] = (
+    Path("/var/secrets"),  # Cloud Run mounted secrets
+    Path("/etc/amail"),  # System config
+    Path.home(),  # User home (dev)
+    Path.cwd(),  # Working directory (dev)
+)
+
 
 class InboundRule(BaseModel):
     """A single inbound recipient mapped to one or more forward targets."""
@@ -67,8 +76,13 @@ def _read_source() -> str | None:
     if os.environ.get(ENV_ROUTES):
         return os.environ[ENV_ROUTES]
     file_path = os.environ.get(ENV_ROUTES_FILE)
-    if file_path and Path(file_path).is_file():
-        return Path(file_path).read_text()
+    if file_path:
+        resolved = Path(file_path).resolve()
+        if not any(resolved.is_relative_to(prefix) for prefix in ALLOWED_PREFIXES):
+            log.error("routing_file_outside_allowed_dir", path=str(resolved))
+            return None
+        if resolved.is_file():
+            return resolved.read_text()
     if DEV_ROUTES_PATH.is_file():
         return DEV_ROUTES_PATH.read_text()
     return None
