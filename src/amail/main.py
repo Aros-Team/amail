@@ -71,7 +71,7 @@ def create_app() -> FastAPI:
             "Email microservice with FastAPI and Resend. "
             "Send, receive, and forward emails."
         ),
-        version="1.2.1",  # x-release-please-version
+        version="1.3.0",  # x-release-please-version
         docs_url=None if is_production else "/docs",
         redoc_url=None if is_production else "/redoc",
     )
