@@ -5,6 +5,7 @@ import uuid
 from typing import Any
 
 import resend
+from resend.http_client_requests import RequestsClient
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -34,6 +35,8 @@ class ResendSender:
     def __init__(self) -> None:
         settings = get_settings()
         resend.api_key = settings.resend_api_key
+        # Configure 10s timeout (default is 30s)
+        resend.default_http_client = RequestsClient(timeout=10)
         self.settings = settings
 
     def send(

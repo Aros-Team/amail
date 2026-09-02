@@ -2,6 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import amail.providers.mock  # noqa: F401 — ensure mock provider is registered
+
 
 @pytest.fixture
 def mock_settings() -> MagicMock:
