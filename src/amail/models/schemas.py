@@ -4,6 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel, EmailStr, model_validator
 
+from amail.config import get_settings
+
 
 class EmailRequest(BaseModel):
     """Payload for sending a single plain-text email."""
@@ -37,9 +39,8 @@ class BatchEmailRequest(BaseModel):
     @model_validator(mode="after")
     def check_batch_size(self) -> "BatchEmailRequest":
         """Raise if emails list exceeds the configured max batch size."""
-        import os
-
-        max_size = int(os.environ.get("AMAIL_MAX_BATCH_SIZE", "25"))
+        settings = get_settings()
+        max_size = settings.max_batch_size
         if len(self.emails) > max_size:
             raise ValueError(
                 f"Batch size {len(self.emails)} exceeds maximum of {max_size}"
@@ -81,6 +82,7 @@ class EmailHealthResponse(BaseModel):
     resend_id: str | None = None
     test_email: str | None = None
     message: str | None = None
+    error_category: str | None = None
     timestamp: str
 
 
