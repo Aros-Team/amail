@@ -1,6 +1,7 @@
 """Inbound email handling for the Resend provider."""
 
 import time
+from html import escape
 from typing import Any
 
 import resend
@@ -46,11 +47,19 @@ class ResendReceiver:
 
         if not html:
             log.warning("email_content_empty", email_id=email_id)
-            html = f"<p>Forwarded email from: {from_email}</p><p>Subject: {subject}</p>"
+            safe_from = escape(from_email)
+            safe_subject = escape(subject)
+            html = (
+                f"<p>Forwarded email from: {safe_from}</p>"
+                f"<p>Subject: {safe_subject}</p>"
+            )
+
+        safe_subject = escape(subject)
+        safe_from = escape(from_email)
 
         self.sender.send(
             to=forwards,
-            subject=f"FWD: {subject} (from: {from_email})",
+            subject=f"FWD: {safe_subject} (from: {safe_from})",
             html=html,
         )
         return {"status": "forwarded", "forwarded_to": forwards}

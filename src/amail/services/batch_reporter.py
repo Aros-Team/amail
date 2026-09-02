@@ -1,6 +1,7 @@
 """Batch failure report helpers for the Amail service."""
 
 from datetime import UTC, datetime
+from html import escape
 
 from amail.contracts.sender import EmailSender
 from amail.logging_config import get_logger
@@ -16,9 +17,9 @@ def build_failure_report(results: list[EmailResponse]) -> str:
         return ""
 
     rows = "".join(
-        f"<tr><td>{r.to or 'N/A'}</td>"
-        f"<td>{r.message}</td>"
-        f"<td>{datetime.now(UTC).isoformat()}</td></tr>"
+        f"<tr><td>{escape(str(r.to or 'N/A'))}</td>"
+        f"<td>{escape(r.message)}</td>"
+        f"<td>{escape(datetime.now(UTC).isoformat())}</td></tr>"
         for r in failed
     )
 
