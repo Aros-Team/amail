@@ -3,6 +3,30 @@
 All notable changes to this project are documented in this file.
 Releases follow the service version reported by the API (`app.version`).
 
+## [1.3.0](https://github.com/Aros-Team/amail/compare/v1.2.1...v1.3.0) (2026-09-02)
+
+
+### Features
+
+* **security:** add in-memory rate limiting for API endpoints ([0c5695b](https://github.com/Aros-Team/amail/commit/0c5695b09c77181450bc0e78ba88308996e9fa48))
+* **security:** add path traversal guard for routing config file ([dbc8ee5](https://github.com/Aros-Team/amail/commit/dbc8ee59311c4988c0f586b50dbc7a7fbe8da219))
+* **security:** batch limit, read-only API key, provider health check ([63981fa](https://github.com/Aros-Team/amail/commit/63981fa39e1c33ff293d15b2de08424203adaf03))
+* **security:** map health provider errors to generic categories ([1523466](https://github.com/Aros-Team/amail/commit/1523466f9a1f980478cee2bb20c980dab0b3155b))
+
+
+### Bug Fixes
+
+* **security:** harden BodyLimitMiddleware against bypass attacks ([d809672](https://github.com/Aros-Team/amail/commit/d8096727eb87a71406b98caf706616c10f1b92be))
+* **security:** sanitize HTML in batch reports and webhook forwards ([63744e3](https://github.com/Aros-Team/amail/commit/63744e308278e0d158f1571f27ab8e9719507d51))
+* update test_security.py for get_settings change + uv.lock sync ([d7a839a](https://github.com/Aros-Team/amail/commit/d7a839a904f10c6141102f169ce547f04881f41a))
+
+
+### Documentation
+
+* **adr:** add ADR-003 provider-agnostic architecture + singleton pattern ([f6375fc](https://github.com/Aros-Team/amail/commit/f6375fc76fcca6874a5c54090a77c64243a32898))
+* **adr:** update ADR-001 with dual-layer rate limiting strategy ([87ae2e9](https://github.com/Aros-Team/amail/commit/87ae2e93d234e6ba78a584e46b376c8856216a36))
+* **security:** update architecture.md — auth dev mode, singleton, workers ([538c6c3](https://github.com/Aros-Team/amail/commit/538c6c3921f0d5f1a2dc777e1156a88915dac048))
+
 ## [1.2.1](https://github.com/Aros-Team/amail/compare/v1.2.0...v1.2.1) (2026-08-31)
 
 
