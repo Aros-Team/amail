@@ -140,8 +140,11 @@ def test_batch_send_env_var_overrides_limit() -> None:
     provider = MagicMock()
     provider.sender = sender
 
+    fake_settings = type("FakeSettings", (), {"max_batch_size": 10})()
+
     with (
         patch("amail.services.email_service.get_provider", return_value=provider),
+        patch("amail.models.schemas.get_settings", return_value=fake_settings),
         patch.dict(
             "os.environ",
             {"AMAIL_API_KEY": TEST_API_KEY, "AMAIL_MAX_BATCH_SIZE": "10"},
