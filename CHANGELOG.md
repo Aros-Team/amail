@@ -3,6 +3,13 @@
 All notable changes to this project are documented in this file.
 Releases follow the service version reported by the API (`app.version`).
 
+## [1.3.1](https://github.com/Aros-Team/amail/compare/v1.3.0...v1.3.1) (2026-09-02)
+
+
+### Bug Fixes
+
+* **ci:** read version from pyproject.toml for Docker tags ([3c3f7fe](https://github.com/Aros-Team/amail/commit/3c3f7fecbfbdf75824719ba2d6b8d4f1a3f0c02f))
+
 ## [1.3.0](https://github.com/Aros-Team/amail/compare/v1.2.1...v1.3.0) (2026-09-02)
 
 
