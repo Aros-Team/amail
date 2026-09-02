@@ -69,6 +69,28 @@ receiver = provider.receiver     # EmailReceiver | None
 3. Register it in the provider's `__init__.py`.
 4. Keep the Mock provider in place so the app runs without credentials.
 
+### Provider singleton
+
+`get_provider()` caches the provider instance for the process lifetime. The
+provider is instantiated once on first call and returned on subsequent calls.
+This avoids:
+
+- Repeated `resend.api_key` global mutation on every request
+- Unnecessary object creation overhead
+- Potential race conditions in concurrent scenarios
+
+Use `reset_provider()` to clear the cache (primarily for testing):
+
+```python
+from amail.providers import get_provider, reset_provider
+
+provider = get_provider()    # creates instance
+provider = get_provider()    # returns cached instance (same object)
+
+reset_provider()             # clears cache
+provider = get_provider()    # creates new instance
+```
+
 ---
 
 ## 4. Error Handling Pattern
@@ -133,6 +155,20 @@ Rules:
   returns `None`; health exposes this as "unhealthy" without crashing the app.
 - Behavioral overrides (previously the `SET_FORWARD:` command) have been removed;
   forwarding is now fully declarative via the contract.
+
+### Worker configuration
+
+In serverless deployments (Cloud Run), the default of 1 worker is correct — the
+platform scales instances, not workers. For self-hosted deployments, configure
+the `AMAIL_WORKERS` environment variable:
+
+| Environment | Default | Recommendation |
+|-------------|---------|----------------|
+| development | 1 | Keep default |
+| production (Cloud Run) | 1 | Keep default (platform scales instances) |
+| production (self-hosted) | 4 | Set to CPU count or 2×CPU |
+
+The Dockerfile reads `AMAIL_WORKERS` and passes it to uvicorn.
 
 ---
 
@@ -218,8 +254,10 @@ protected endpoints. Implemented as a FastAPI dependency in
 
 ### Dev mode
 
-When `AMAIL_API_KEY` is unset or empty, authentication is disabled — all
-requests pass through. This is intentional for local development.
+When `AMAIL_API_KEY` is unset or empty, ALL requests to protected endpoints are
+rejected with 401. This prevents accidental deployment without authentication.
+For local development without an API key, set a dummy value (e.g.,
+`AMAIL_API_KEY=dev-key`) and pass it in the `X-API-Key` header.
 
 ### Key management
 
