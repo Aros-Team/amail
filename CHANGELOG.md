@@ -3,6 +3,13 @@
 All notable changes to this project are documented in this file.
 Releases follow the service version reported by the API (`app.version`).
 
+## [1.3.2](https://github.com/Aros-Team/amail/compare/v1.3.1...v1.3.2) (2026-09-03)
+
+
+### Documentation
+
+* rewrite README and add provider/deploy guides with Apache 2.0 license ([107a933](https://github.com/Aros-Team/amail/commit/107a933c59c18cd2ae6f345320348492d9f713d1))
+
 ## [1.3.1](https://github.com/Aros-Team/amail/compare/v1.3.0...v1.3.1) (2026-09-02)
 
 

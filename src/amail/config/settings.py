@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     api_key: str = ""
     email_provider: str = "resend"
     environment: str = "development"
-    version: str = "1.3.1"  # x-release-please-version
+    version: str = "1.3.2"  # x-release-please-version
     log_level: str = "INFO"
     max_batch_size: int = 25
 
